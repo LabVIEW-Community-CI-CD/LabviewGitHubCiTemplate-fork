@@ -20,7 +20,7 @@ This repository is intended to be used in two ways:
   - `.gitignore`
   - issue templates
   - consumer proving rail docs
-  - hosted Linux + Windows validation workflow
+  - hosted Linux + Windows consumer-proving workflow
 - a self-validation workflow that renders the template on both `ubuntu-latest`
   and `windows-latest`
 

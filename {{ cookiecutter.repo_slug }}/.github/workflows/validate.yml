@@ -4,28 +4,70 @@ on:
   push:
     branches:
       - {{ cookiecutter.default_branch }}
+      - feature/*
+      - hotfix/*
+      - release/*
   pull_request:
   workflow_dispatch:
+    inputs:
+      proving_reason:
+        description: Why this consumer-proving run is being dispatched.
+        required: false
+        default: manual
 
 jobs:
+  consumer-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consumer proving plan
+        shell: pwsh
+        run: |
+          $lines = @(
+            '### Consumer proving plan',
+            '',
+            ('- event: `{0}`' -f '{% raw %}${{ github.event_name }}{% endraw %}'),
+            ('- ref: `{0}`' -f '{% raw %}${{ github.ref }}{% endraw %}'),
+            ('- proving_reason: `{0}`' -f '{% raw %}${{ inputs.proving_reason || ''manual'' }}{% endraw %}'),
+            '- hosted_lanes: `ubuntu-latest`, `windows-latest`'
+          )
+          $lines -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+
   hosted-linux:
+    needs: consumer-plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Hosted Linux lane
+      - name: Hosted Linux consumer lane
         shell: pwsh
         run: |
-          Write-Host 'Hosted Linux lane is ready for project-specific LabVIEW automation.'
+          Write-Host 'Hosted Linux consumer lane is ready for project-specific LabVIEW automation.'
           Write-Host ('Repository: {0}/{1}' -f '{% raw %}${{ github.repository_owner }}{% endraw %}', '{% raw %}${{ github.event.repository.name }}{% endraw %}')
           Write-Host ('Ref: {0}' -f '{% raw %}${{ github.ref }}{% endraw %}')
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              '### Hosted Linux consumer lane',
+              '',
+              '- status: `ready`',
+              ('- runner_os: `{0}`' -f $env:RUNNER_OS)
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
 
   hosted-windows:
+    needs: consumer-plan
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Hosted Windows lane
+      - name: Hosted Windows consumer lane
         shell: powershell
         run: |
-          Write-Host 'Hosted Windows lane is ready for project-specific LabVIEW automation.'
+          Write-Host 'Hosted Windows consumer lane is ready for project-specific LabVIEW automation.'
           Write-Host ('Repository: {0}/{1}' -f '{% raw %}${{ github.repository_owner }}{% endraw %}', '{% raw %}${{ github.event.repository.name }}{% endraw %}')
           Write-Host ('Ref: {0}' -f '{% raw %}${{ github.ref }}{% endraw %}')
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              '### Hosted Windows consumer lane',
+              '',
+              '- status: `ready`',
+              ('- runner_os: `{0}`' -f $env:RUNNER_OS)
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }

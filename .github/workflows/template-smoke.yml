@@ -47,6 +47,7 @@ jobs:
             'README.md',
             'LICENSE',
             '.gitignore',
+            'docs/CONSUMER_PROVING_RAIL.md',
             '.github/ISSUE_TEMPLATE/config.yml',
             '.github/ISSUE_TEMPLATE/work-item.yml',
             '.github/workflows/validate.yml'
@@ -55,6 +56,21 @@ jobs:
             $candidate = Join-Path $generatedRoot $relativePath
             if (-not (Test-Path -LiteralPath $candidate)) {
               throw "Missing rendered file: $relativePath"
+            }
+          }
+          $workflowPath = Join-Path $generatedRoot '.github/workflows/validate.yml'
+          $workflowContent = Get-Content -LiteralPath $workflowPath -Raw
+          $requiredSnippets = @(
+            'feature/*',
+            'hotfix/*',
+            'release/*',
+            '### Consumer proving plan',
+            'Hosted Linux consumer lane',
+            'Hosted Windows consumer lane'
+          )
+          foreach ($snippet in $requiredSnippets) {
+            if ($workflowContent -notlike "*$snippet*") {
+              throw "Generated workflow is missing required snippet: $snippet"
             }
           }
           "generated_root=$generatedRoot" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
