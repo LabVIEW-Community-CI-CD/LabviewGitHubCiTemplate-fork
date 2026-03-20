@@ -1,0 +1,28 @@
+name: Template evolution
+about: Track a concrete improvement to the hosted-first cookiecutter template surface.
+title: '[Template]: '
+labels:
+  - enhancement
+  - documentation
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What should change in the template?
+    validations:
+      required: true
+  - type: textarea
+    id: hosted-proof
+    attributes:
+      label: Hosted proof
+      description: Which hosted Linux/Windows lanes should prove this change?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance
+      description: What will make this change done?
+    validations:
+      required: true

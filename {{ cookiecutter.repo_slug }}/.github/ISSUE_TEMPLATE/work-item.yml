@@ -1,0 +1,27 @@
+name: Work item
+about: Track a concrete hosted-first change for this generated repository.
+title: '[Work]: '
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What needs to change?
+    validations:
+      required: true
+  - type: textarea
+    id: hosted_lanes
+    attributes:
+      label: Hosted lanes
+      description: Which hosted Linux or Windows lanes should prove this work?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance
+      description: What evidence makes this done?
+    validations:
+      required: true

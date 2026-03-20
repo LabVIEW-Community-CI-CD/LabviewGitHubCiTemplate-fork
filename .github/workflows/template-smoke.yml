@@ -43,9 +43,12 @@ jobs:
             throw "Rendered project was not created at $generatedRoot"
           }
           $required = @(
+            'AGENTS.md',
             'README.md',
             'LICENSE',
             '.gitignore',
+            '.github/ISSUE_TEMPLATE/config.yml',
+            '.github/ISSUE_TEMPLATE/work-item.yml',
             '.github/workflows/validate.yml'
           )
           foreach ($relativePath in $required) {

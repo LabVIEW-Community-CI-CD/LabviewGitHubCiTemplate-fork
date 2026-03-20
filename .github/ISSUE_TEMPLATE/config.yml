@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Consumer proving rail notes
+    url: https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/blob/develop/docs/CONSUMER_PROVING_RAIL.md
+    about: Start here for the canonical, org-fork, and personal-fork operating model.
