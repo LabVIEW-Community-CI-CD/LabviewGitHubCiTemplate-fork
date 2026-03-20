@@ -1,0 +1,31 @@
+name: validate
+
+on:
+  push:
+    branches:
+      - {{ cookiecutter.default_branch }}
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  hosted-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Hosted Linux lane
+        shell: pwsh
+        run: |
+          Write-Host 'Hosted Linux lane is ready for project-specific LabVIEW automation.'
+          Write-Host ('Repository: {0}/{1}' -f '{% raw %}${{ github.repository_owner }}{% endraw %}', '{% raw %}${{ github.event.repository.name }}{% endraw %}')
+          Write-Host ('Ref: {0}' -f '{% raw %}${{ github.ref }}{% endraw %}')
+
+  hosted-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Hosted Windows lane
+        shell: powershell
+        run: |
+          Write-Host 'Hosted Windows lane is ready for project-specific LabVIEW automation.'
+          Write-Host ('Repository: {0}/{1}' -f '{% raw %}${{ github.repository_owner }}{% endraw %}', '{% raw %}${{ github.event.repository.name }}{% endraw %}')
+          Write-Host ('Ref: {0}' -f '{% raw %}${{ github.ref }}{% endraw %}')

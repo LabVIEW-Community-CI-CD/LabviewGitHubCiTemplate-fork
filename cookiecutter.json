@@ -1,0 +1,8 @@
+{
+  "project_name": "LabVIEW Hosted CI Sample",
+  "repo_slug": "labview-hosted-ci-sample",
+  "github_owner": "LabVIEW-Community-CI-CD",
+  "default_branch": "develop",
+  "license_holder": "LabVIEW Community CI/CD",
+  "copyright_year": "2026"
+}

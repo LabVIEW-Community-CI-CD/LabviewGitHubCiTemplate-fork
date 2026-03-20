@@ -1,0 +1,63 @@
+name: template-smoke
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  render:
+    name: render (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install cookiecutter
+        run: python -m pip install --disable-pip-version-check cookiecutter
+
+      - name: Render template
+        id: render
+        shell: pwsh
+        run: |
+          $outputRoot = Join-Path $env:RUNNER_TEMP 'cookiecutter-render'
+          New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
+          cookiecutter $PWD --no-input --output-dir $outputRoot `
+            project_name='Template Smoke Sample' `
+            repo_slug='template-smoke-sample' `
+            github_owner='LabVIEW-Community-CI-CD' `
+            default_branch='develop' `
+            license_holder='LabVIEW Community CI/CD' `
+            copyright_year='2026'
+          $generatedRoot = Join-Path $outputRoot 'template-smoke-sample'
+          if (-not (Test-Path -LiteralPath $generatedRoot -PathType Container)) {
+            throw "Rendered project was not created at $generatedRoot"
+          }
+          $required = @(
+            'README.md',
+            'LICENSE',
+            '.gitignore',
+            '.github/workflows/validate.yml'
+          )
+          foreach ($relativePath in $required) {
+            $candidate = Join-Path $generatedRoot $relativePath
+            if (-not (Test-Path -LiteralPath $candidate)) {
+              throw "Missing rendered file: $relativePath"
+            }
+          }
+          "generated_root=$generatedRoot" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Upload rendered sample
+        uses: actions/upload-artifact@v4
+        with:
+          name: template-smoke-${{ matrix.os }}
+          path: ${{ steps.render.outputs.generated_root }}

@@ -1,0 +1,14 @@
+# Generated artifacts
+__pycache__/
+*.py[cod]
+
+# Editors
+.vscode/
+.idea/
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
