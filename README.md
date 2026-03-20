@@ -50,3 +50,7 @@ hosted proving lanes.
 
 See [docs/CONSUMER_PROVING_RAIL.md](docs/CONSUMER_PROVING_RAIL.md) for the
 canonical repo, organization-fork, and personal-fork operating model.
+
+See [docs/COMPAREVI_PLATFORM_INTEGRATION.md](docs/COMPAREVI_PLATFORM_INTEGRATION.md)
+for the intended boundary between generated consumers and the comparevi
+platform repos.

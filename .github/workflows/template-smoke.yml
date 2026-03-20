@@ -47,6 +47,7 @@ jobs:
             'README.md',
             'LICENSE',
             '.gitignore',
+            'docs/COMPAREVI_PLATFORM_INTEGRATION.md',
             'docs/CONSUMER_PROVING_RAIL.md',
             '.github/ISSUE_TEMPLATE/config.yml',
             '.github/ISSUE_TEMPLATE/work-item.yml',
