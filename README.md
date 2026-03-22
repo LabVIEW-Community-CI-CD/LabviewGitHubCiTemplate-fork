@@ -41,6 +41,28 @@ cookiecutter https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate.
   github_owner="LabVIEW-Community-CI-CD"
 ```
 
+## Canonical Operating Contract
+
+This canonical repository is intentionally lightweight.
+It should remain docs/workflow-driven and should not absorb comparevi platform
+control-plane tooling unless it explicitly adopts that direction later.
+
+Future agents should treat the canonical template repo this way:
+
+- start from canonical `develop`
+- inspect open issues first
+- inspect the latest supported `template-smoke` state
+- if no eligible issue exists, remain in monitoring mode
+- if an eligible issue exists, use that issue as the top objective
+
+Root repo agent entrypoints live in:
+
+- `AGENTS.md`
+- `AGENT_HANDOFF.txt`
+
+Generated consumers still inherit their own `AGENTS.md`; the root files above
+only govern the canonical template repository itself.
+
 ## Direction
 
 This repository is the mass-consumer cookiecutter surface for hosted GitHub CI
@@ -56,9 +78,10 @@ Current fork consumer proving guidance:
 - keep fork `develop` aligned to canonical `develop`
 - use manual `template-smoke` dispatches on aligned fork `develop` as the
   supported fork proof path
-- treat fork-local `pull_request` proof as tracked investigation work until
-  [issue #10](https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/issues/10)
-  is resolved
+- treat fork-local `pull_request` proof as unsupported and do not reopen work
+  from it by itself
+- when the canonical template queue is empty, monitoring-only is the correct
+  terminal state
 
 See [docs/COMPAREVI_PLATFORM_INTEGRATION.md](docs/COMPAREVI_PLATFORM_INTEGRATION.md)
 for the intended boundary between generated consumers and the comparevi

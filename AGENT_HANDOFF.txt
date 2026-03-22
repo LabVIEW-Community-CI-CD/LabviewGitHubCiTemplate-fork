@@ -1,0 +1,50 @@
+# Agent Handoff
+
+This file is the stable handoff entrypoint for the canonical
+`LabviewGitHubCiTemplate` repository.
+It is not a running status log.
+
+Live state for this lightweight repo is determined from GitHub evidence:
+- open issues in the canonical template repo
+- latest supported `template-smoke` results on canonical and consumer forks
+- canonical/fork `develop` alignment
+
+## First Actions
+
+1. Start from canonical `develop`.
+2. Inspect open issues in `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate`.
+3. Inspect the latest supported `template-smoke` state on:
+   - canonical template repo
+   - organization fork
+   - personal fork
+4. If no eligible issue exists, remain in monitoring mode.
+5. If an eligible issue exists, use that issue as the top objective.
+
+## Live State Surfaces
+
+- Open issues:
+  `gh issue list --repo LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate --state open`
+- Canonical workflow state:
+  `gh run list --repo LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate --workflow template-smoke.yml --limit 5`
+- Organization fork supported proof:
+  `gh run list --repo LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate-fork --workflow template-smoke.yml --branch develop --event workflow_dispatch --limit 5`
+- Personal fork supported proof:
+  `gh run list --repo svelderrainruiz/LabviewGitHubCiTemplate --workflow template-smoke.yml --branch develop --event workflow_dispatch --limit 5`
+
+## Working Rules
+
+- `queue-empty` is a valid terminal monitoring state
+- canonical template open issues are the primary wake signal
+- forks are proving rails, not the default execution target
+- supported fork proof is `workflow_dispatch` `template-smoke` on aligned fork
+  `develop`
+- fork-local `pull_request` validation remains unsupported and must not reopen
+  work by itself
+
+## When Handoff Looks Wrong
+
+1. Re-check canonical open issues.
+2. Re-check canonical and fork `template-smoke` runs.
+3. Re-check fork `develop` alignment to canonical `develop`.
+4. Use `README.md` and `docs/CONSUMER_PROVING_RAIL.md` for the durable repo
+   contract.
