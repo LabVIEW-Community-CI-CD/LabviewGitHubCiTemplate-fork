@@ -49,6 +49,7 @@ jobs:
             '.gitignore',
             'docs/COMPAREVI_PLATFORM_INTEGRATION.md',
             'docs/CONSUMER_PROVING_RAIL.md',
+            'tests/fixtures/comparevi/placeholder.vi',
             '.github/ISSUE_TEMPLATE/config.yml',
             '.github/ISSUE_TEMPLATE/work-item.yml',
             '.github/workflows/validate.yml'
@@ -67,7 +68,9 @@ jobs:
             'release/*',
             '### Consumer proving plan',
             'Hosted Linux consumer lane',
-            'Hosted Windows consumer lane'
+            'Hosted Windows consumer lane',
+            'uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3',
+            'shortCircuitedIdentical'
           )
           foreach ($snippet in $requiredSnippets) {
             if ($workflowContent -notlike "*$snippet*") {
@@ -81,3 +84,41 @@ jobs:
         with:
           name: template-smoke-${{ matrix.os }}
           path: ${{ steps.render.outputs.generated_root }}
+
+  comparevi-consumer-smoke:
+    name: comparevi-consumer-smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: comparevi
+        name: CompareVI consumer smoke
+        uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3
+        with:
+          base: tests/fixtures/comparevi/placeholder.vi
+          head: tests/fixtures/comparevi/placeholder.vi
+          fail-on-diff: 'false'
+
+      - name: Assert comparevi short-circuit
+        shell: pwsh
+        run: |
+          if ('${{ steps.comparevi.outputs.shortCircuitedIdentical }}' -ne 'true') {
+            throw 'Expected compare-vi consumer smoke to short-circuit identical inputs.'
+          }
+          if ('${{ steps.comparevi.outputs.diff }}' -ne 'false') {
+            throw 'Expected compare-vi consumer smoke to report no diff for identical inputs.'
+          }
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              '### CompareVI consumer smoke',
+              '',
+              '- pinned_ref: `LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3`',
+              ('- runner_os: `{0}`' -f $env:RUNNER_OS),
+              ('- shortCircuitedIdentical: `{0}`' -f '${{ steps.comparevi.outputs.shortCircuitedIdentical }}'),
+              ('- diff: `{0}`' -f '${{ steps.comparevi.outputs.diff }}')
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
