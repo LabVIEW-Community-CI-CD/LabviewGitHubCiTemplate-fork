@@ -25,6 +25,23 @@ standing-priority work.
   - good for manual dispatches, experimentation, and future remote-worker
     identity routing
 
+## Current Proof Contract
+
+- canonical template repo
+  - `template-smoke` on `push`, `pull_request`, and `workflow_dispatch` is the
+    authoritative template-self-validation surface
+- consumer forks
+  - keep fork `develop` aligned to canonical `develop`
+  - treat `workflow_dispatch` on `template-smoke` from aligned `develop` as the
+    currently supported fork consumer proof lane
+  - treat fork-local `pull_request` proof as an active investigation, not a
+    guaranteed signal, until
+    [issue #10](https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/issues/10)
+    is resolved
+- generated consumers
+  - remain the hosted-first proving target for downstream validation
+  - should not inherit fork-only proving assumptions without explicit evidence
+
 ## Labels
 
 - canonical repos should use `standing-priority`

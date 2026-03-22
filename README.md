@@ -51,6 +51,15 @@ hosted proving lanes.
 See [docs/CONSUMER_PROVING_RAIL.md](docs/CONSUMER_PROVING_RAIL.md) for the
 canonical repo, organization-fork, and personal-fork operating model.
 
+Current fork consumer proving guidance:
+
+- keep fork `develop` aligned to canonical `develop`
+- use manual `template-smoke` dispatches on aligned fork `develop` as the
+  supported fork proof path
+- treat fork-local `pull_request` proof as tracked investigation work until
+  [issue #10](https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/issues/10)
+  is resolved
+
 See [docs/COMPAREVI_PLATFORM_INTEGRATION.md](docs/COMPAREVI_PLATFORM_INTEGRATION.md)
 for the intended boundary between generated consumers and the comparevi
 platform repos.
