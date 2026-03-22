@@ -54,3 +54,5 @@ canonical repo, organization-fork, and personal-fork operating model.
 See [docs/COMPAREVI_PLATFORM_INTEGRATION.md](docs/COMPAREVI_PLATFORM_INTEGRATION.md)
 for the intended boundary between generated consumers and the comparevi
 platform repos.
+
+Proof lane note: org fork pull_request consumer proof for #2.
