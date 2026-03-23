@@ -36,6 +36,8 @@ jobs:
             repo_slug='template-smoke-sample' `
             github_owner='LabVIEW-Community-CI-CD' `
             default_branch='develop' `
+            comparevi_tools_consumer_pin='v0.6.3-tools.14' `
+            enable_vi_history_capability='yes' `
             license_holder='LabVIEW Community CI/CD' `
             copyright_year='2026'
           $generatedRoot = Join-Path $outputRoot 'template-smoke-sample'
@@ -49,10 +51,14 @@ jobs:
             '.gitignore',
             'docs/COMPAREVI_PLATFORM_INTEGRATION.md',
             'docs/CONSUMER_PROVING_RAIL.md',
+            'docs/VI_HISTORY_CAPABILITY.md',
             'tests/fixtures/comparevi/placeholder.vi',
+            '.github/comparevi/capabilities.json',
+            '.github/comparevi/lineage.json',
             '.github/ISSUE_TEMPLATE/config.yml',
             '.github/ISSUE_TEMPLATE/work-item.yml',
-            '.github/workflows/validate.yml'
+            '.github/workflows/validate.yml',
+            '.github/workflows/vi-history.yml'
           )
           foreach ($relativePath in $required) {
             $candidate = Join-Path $generatedRoot $relativePath
@@ -75,6 +81,37 @@ jobs:
           foreach ($snippet in $requiredSnippets) {
             if ($workflowContent -notlike "*$snippet*") {
               throw "Generated workflow is missing required snippet: $snippet"
+            }
+          }
+          $capabilityPath = Join-Path $generatedRoot '.github/comparevi/capabilities.json'
+          $capability = Get-Content -LiteralPath $capabilityPath -Raw | ConvertFrom-Json -AsHashtable
+          if (-not $capability.capabilities.viHistory.enabled) {
+            throw 'Rendered capability manifest should enable vi-history for template smoke.'
+          }
+          if ($capability.capabilities.viHistory.authoritativeConsumerPin -ne 'v0.6.3-tools.14') {
+            throw 'Rendered capability manifest did not preserve the CompareVI.Tools consumer pin.'
+          }
+          if ($capability.capabilities.viHistory.contractPaths.historyFacade -ne 'consumerContract.historyFacade') {
+            throw 'Rendered capability manifest is missing the distributed historyFacade contract path.'
+          }
+          $lineagePath = Join-Path $generatedRoot '.github/comparevi/lineage.json'
+          $lineage = Get-Content -LiteralPath $lineagePath -Raw | ConvertFrom-Json -AsHashtable
+          if ($lineage.branchRoles.producerLineage -ne 'upstream/develop') {
+            throw 'Rendered lineage manifest is missing the upstream/develop producer-lineage role.'
+          }
+          if ($lineage.branchRoles.consumerProving -ne 'downstream/develop') {
+            throw 'Rendered lineage manifest is missing the downstream/develop consumer-proving role.'
+          }
+          $historyWorkflowPath = Join-Path $generatedRoot '.github/workflows/vi-history.yml'
+          $historyWorkflowContent = Get-Content -LiteralPath $historyWorkflowPath -Raw
+          $historySnippets = @(
+            'default: v0.6.3-tools.14',
+            'CompareVI.Tools-$pin.zip',
+            '.github/comparevi/capabilities.json'
+          )
+          foreach ($snippet in $historySnippets) {
+            if ($historyWorkflowContent -notlike "*$snippet*") {
+              throw "Generated vi-history workflow is missing required snippet: $snippet"
             }
           }
           "generated_root=$generatedRoot" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append

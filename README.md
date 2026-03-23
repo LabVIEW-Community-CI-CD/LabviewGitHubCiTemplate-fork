@@ -20,6 +20,8 @@ This repository is intended to be used in two ways:
   - `.gitignore`
   - issue templates
   - consumer proving rail docs
+  - lineage and capability manifests for CompareVI integration
+  - an opt-in `vi-history` distribution scaffold pinned to CompareVI.Tools
   - hosted Linux + Windows consumer-proving workflow
 - a self-validation workflow that renders the template on both `ubuntu-latest`
   and `windows-latest`
@@ -39,6 +41,8 @@ cookiecutter https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate.
   project_name="LabVIEW Hosted CI Sample"
   repo_slug="labview-hosted-ci-sample"
   github_owner="LabVIEW-Community-CI-CD"
+  comparevi_tools_consumer_pin="v0.6.3-tools.14"
+  enable_vi_history_capability="yes"
 ```
 
 ## Canonical Operating Contract
@@ -63,6 +67,30 @@ Root repo agent entrypoints live in:
 Generated consumers still inherit their own `AGENTS.md`; the root files above
 only govern the canonical template repository itself.
 
+## VI History Capability Distribution
+
+This template now distributes `vi-history` as a lineage-aware CompareVI
+capability.
+
+The intended supply chain is:
+
+1. `compare-vi-cli-action` publishes the upstream CompareVI release bundle
+2. `LabviewGitHubCiTemplate` distributes the capability into generated repos
+3. generated repos consume the pinned bundle without copying compare internals
+
+Generated repositories now include:
+
+- `.github/comparevi/capabilities.json`
+- `.github/comparevi/lineage.json`
+- `.github/workflows/vi-history.yml`
+- `docs/VI_HISTORY_CAPABILITY.md`
+
+The distributed lineage contract uses these branch-role semantics:
+
+- `upstream/develop`: producer-lineage plane
+- `develop` or the generated repo's default branch: repo integration plane
+- `downstream/develop`: descendant consumer-proving plane
+
 ## Direction
 
 This repository is the mass-consumer cookiecutter surface for hosted GitHub CI
@@ -85,4 +113,6 @@ Current fork consumer proving guidance:
 
 See [docs/COMPAREVI_PLATFORM_INTEGRATION.md](docs/COMPAREVI_PLATFORM_INTEGRATION.md)
 for the intended boundary between generated consumers and the comparevi
-platform repos.
+platform repos, and
+[docs/VI_HISTORY_CAPABILITY_DISTRIBUTION.md](docs/VI_HISTORY_CAPABILITY_DISTRIBUTION.md)
+for the canonical distributor contract.

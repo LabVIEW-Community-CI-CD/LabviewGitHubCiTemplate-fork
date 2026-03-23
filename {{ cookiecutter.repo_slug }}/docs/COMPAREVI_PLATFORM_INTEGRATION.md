@@ -7,9 +7,37 @@ consumer, not as a second runtime owner.
 
 - `compare-vi-cli-action` owns runtime/tooling orchestration and released
   CompareVI.Tools assets
+- `LabviewGitHubCiTemplate` distributed the `vi-history` capability into this
+  repository as lightweight docs/workflow scaffolding
 - `comparevi-history` owns reviewer-facing history bundle/render surfaces
 - this repository should own only its consumer-specific workflow triggers,
   proving decisions, and documentation
+
+## Distributed Capability
+
+This repository inherits a distributed `vi-history` pack from the template.
+
+Use these local surfaces as the consumer source of truth:
+
+- `.github/comparevi/capabilities.json`
+- `.github/comparevi/lineage.json`
+- `.github/workflows/vi-history.yml`
+- `docs/VI_HISTORY_CAPABILITY.md`
+
+The distributed pin for CompareVI.Tools is
+`{{ cookiecutter.comparevi_tools_consumer_pin }}`.
+
+## Branch Roles
+
+When this repository adopts the full lineage model, treat these branches as the
+role map:
+
+- `upstream/develop`
+  - upstream producer-lineage intake
+- `{{ cookiecutter.default_branch }}`
+  - repository integration and product authoring
+- `downstream/develop`
+  - downstream consumer proving for future descendants
 
 ## Reference Consumer
 
@@ -24,5 +52,6 @@ platform without copying platform-owned runtime logic into the consumer repo.
 Treat comparevi integration as an opt-in lane:
 
 1. keep the baseline hosted Linux and hosted Windows consumer workflow healthy
-2. pin released comparevi artifacts
-3. add comparevi-specific proving only when the repository is ready for it
+2. keep the distributed capability and lineage manifests current
+3. pin released comparevi artifacts
+4. add comparevi-specific proving only when the repository is ready for it

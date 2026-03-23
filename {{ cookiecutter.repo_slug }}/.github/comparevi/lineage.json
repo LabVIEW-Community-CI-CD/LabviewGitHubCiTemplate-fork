@@ -1,0 +1,15 @@
+{
+  "schema": "labview-template/lineage-manifest@v1",
+  "templateRepository": "LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate",
+  "generatedFromTemplateBranch": "develop",
+  "generatedRepositoryOwner": "{{ cookiecutter.github_owner }}",
+  "generatedRepositorySlug": "{{ cookiecutter.repo_slug }}",
+  "upstreamProducerRepository": "LabVIEW-Community-CI-CD/compare-vi-cli-action",
+  "branchRoles": {
+    "producerLineage": "upstream/develop",
+    "integration": "{{ cookiecutter.default_branch }}",
+    "consumerProving": "downstream/develop"
+  },
+  "descendantCapabilityDistributionReady": {{ "true" if cookiecutter.enable_vi_history_capability == "yes" else "false" }},
+  "distributedCapabilityManifestPath": ".github/comparevi/capabilities.json"
+}

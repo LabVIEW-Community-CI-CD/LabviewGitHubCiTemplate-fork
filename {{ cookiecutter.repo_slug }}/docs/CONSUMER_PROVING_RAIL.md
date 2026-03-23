@@ -8,6 +8,17 @@ This generated repository assumes a hosted-first proving model.
 2. optional same-owner fork for shared proving
 3. optional personal fork for manual proving and remote worker routing
 
+## Lineage Roles
+
+This generated repository also carries a lightweight lineage contract.
+
+- `upstream/develop`
+  - upstream producer-lineage intake
+- `{{ cookiecutter.default_branch }}`
+  - repository integration and release direction
+- `downstream/develop`
+  - downstream consumer-proving plane for future descendants
+
 ## Labels
 
 - canonical repos: `standing-priority`

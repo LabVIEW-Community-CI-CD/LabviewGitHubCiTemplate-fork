@@ -1,0 +1,26 @@
+{
+  "schema": "labview-template/comparevi-capabilities@v1",
+  "templateDistributorRepository": "LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate",
+  "templateDistributorBranch": "develop",
+  "capabilities": {
+    "viHistory": {
+      "enabled": {{ "true" if cookiecutter.enable_vi_history_capability == "yes" else "false" }},
+      "distributionRole": "template-distributor",
+      "upstreamProducerRepository": "LabVIEW-Community-CI-CD/compare-vi-cli-action",
+      "upstreamCapabilitySchema": "comparevi-tools/vi-history-capability@v1",
+      "distributionModel": "release-bundle",
+      "authoritativeConsumerPin": "{{ cookiecutter.comparevi_tools_consumer_pin }}",
+      "releaseAssetName": "CompareVI.Tools-{{ cookiecutter.comparevi_tools_consumer_pin }}.zip",
+      "releaseMetadataPath": "comparevi-tools-release.json",
+      "generatedWorkflowPath": ".github/workflows/vi-history.yml",
+      "integrationDocPath": "docs/VI_HISTORY_CAPABILITY.md",
+      "contractPaths": {
+        "historyFacade": "consumerContract.historyFacade",
+        "localRuntimeProfiles": "consumerContract.localRuntimeProfiles",
+        "localOperatorSession": "consumerContract.localOperatorSession",
+        "diagnosticsCommentRenderer": "consumerContract.diagnosticsCommentRenderer",
+        "hostedNiLinuxRunner": "consumerContract.hostedNiLinuxRunner"
+      }
+    }
+  }
+}

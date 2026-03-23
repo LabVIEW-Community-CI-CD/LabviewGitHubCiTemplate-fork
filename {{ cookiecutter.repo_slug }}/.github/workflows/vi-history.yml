@@ -1,0 +1,167 @@
+name: vi-history
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_path:
+        description: Path to a VI with meaningful history in this repository.
+        required: false
+        default: tests/fixtures/comparevi/placeholder.vi
+      base_ref:
+        description: Baseline ref for repository-specific VI-history adoption.
+        required: false
+        default: {{ cookiecutter.default_branch }}
+      head_ref:
+        description: Head ref for repository-specific VI-history adoption.
+        required: false
+        default: HEAD
+      comparevi_tools_consumer_pin:
+        description: Override the distributed CompareVI.Tools release pin.
+        required: false
+        default: {{ cookiecutter.comparevi_tools_consumer_pin }}
+
+jobs:
+  capability-bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Read distributed capability manifests
+        id: manifest
+        shell: pwsh
+        run: |
+          $capability = Get-Content -LiteralPath '.github/comparevi/capabilities.json' -Raw | ConvertFrom-Json -AsHashtable
+          $lineage = Get-Content -LiteralPath '.github/comparevi/lineage.json' -Raw | ConvertFrom-Json -AsHashtable
+          $viHistory = $capability.capabilities.viHistory
+          $enabled = [bool]$viHistory.enabled
+          $pin = '{% raw %}${{ inputs.comparevi_tools_consumer_pin }}{% endraw %}'
+          if ([string]::IsNullOrWhiteSpace($pin)) {
+            $pin = $viHistory.authoritativeConsumerPin
+          }
+          "enabled=$($enabled.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "pin=$pin" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "producer_lineage=$($lineage.branchRoles.producerLineage)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "consumer_proving=$($lineage.branchRoles.consumerProving)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              '### Distributed VI History capability',
+              '',
+              ('- enabled: `{0}`' -f $enabled.ToString().ToLowerInvariant()),
+              ('- consumer_pin: `{0}`' -f $pin),
+              ('- producer_lineage: `{0}`' -f $lineage.branchRoles.producerLineage),
+              ('- integration_branch: `{0}`' -f $lineage.branchRoles.integration),
+              ('- consumer_proving: `{0}`' -f $lineage.branchRoles.consumerProving),
+              ('- target_path: `{0}`' -f '{% raw %}${{ inputs.target_path }}{% endraw %}'),
+              ('- base_ref: `{0}`' -f '{% raw %}${{ inputs.base_ref }}{% endraw %}'),
+              ('- head_ref: `{0}`' -f '{% raw %}${{ inputs.head_ref }}{% endraw %}')
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
+
+      - name: Download and verify CompareVI.Tools bundle
+        if: steps.manifest.outputs.enabled == 'true'
+        id: bundle
+        shell: pwsh
+        run: |
+          function Resolve-DottedPath {
+            param(
+              [Parameter(Mandatory = $true)]
+              [object]$InputObject,
+              [Parameter(Mandatory = $true)]
+              [string]$Path
+            )
+            $current = $InputObject
+            foreach ($segment in $Path.Split('.')) {
+              if ($current -is [System.Collections.IDictionary]) {
+                if (-not $current.Contains($segment)) {
+                  return $null
+                }
+                $current = $current[$segment]
+                continue
+              }
+              $property = $current.PSObject.Properties[$segment]
+              if (-not $property) {
+                return $null
+              }
+              $current = $property.Value
+            }
+            return $current
+          }
+
+          $pin = '{% raw %}${{ steps.manifest.outputs.pin }}{% endraw %}'
+          $assetName = "CompareVI.Tools-$pin.zip"
+          $downloadUri = "https://github.com/LabVIEW-Community-CI-CD/compare-vi-cli-action/releases/download/$pin/$assetName"
+          $hashUri = "https://github.com/LabVIEW-Community-CI-CD/compare-vi-cli-action/releases/download/$pin/SHA256SUMS.txt"
+          $workRoot = Join-Path $env:RUNNER_TEMP 'vi-history-capability'
+          New-Item -ItemType Directory -Path $workRoot -Force | Out-Null
+          $assetPath = Join-Path $workRoot $assetName
+          $hashPath = Join-Path $workRoot 'SHA256SUMS.txt'
+          Invoke-WebRequest -Uri $downloadUri -OutFile $assetPath
+          Invoke-WebRequest -Uri $hashUri -OutFile $hashPath
+
+          $expectedLine = Get-Content -LiteralPath $hashPath | Where-Object { $_ -match [regex]::Escape($assetName) } | Select-Object -First 1
+          if (-not $expectedLine) {
+            throw "Could not find checksum entry for $assetName"
+          }
+          $expectedHash = ($expectedLine -split '\s+')[0].ToLowerInvariant()
+          $actualHash = (Get-FileHash -LiteralPath $assetPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($expectedHash -ne $actualHash) {
+            throw "Checksum mismatch for $assetName"
+          }
+
+          $extractRoot = Join-Path $workRoot 'bundle'
+          Expand-Archive -LiteralPath $assetPath -DestinationPath $extractRoot -Force
+          $metadataPath = Join-Path $extractRoot "CompareVI.Tools-$pin\\comparevi-tools-release.json"
+          if (-not (Test-Path -LiteralPath $metadataPath)) {
+            throw "Missing comparevi-tools-release.json at $metadataPath"
+          }
+          $releaseManifest = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json -AsHashtable
+          $capability = Get-Content -LiteralPath '.github/comparevi/capabilities.json' -Raw | ConvertFrom-Json -AsHashtable
+          foreach ($contractPath in $capability.capabilities.viHistory.contractPaths.Values) {
+            if ($null -eq (Resolve-DottedPath -InputObject $releaseManifest -Path $contractPath)) {
+              throw "Missing contract path in release manifest: $contractPath"
+            }
+          }
+          $bundleCapability = Resolve-DottedPath -InputObject $releaseManifest -Path 'consumerContract.capabilities.viHistory'
+          $receiptRoot = Join-Path $PWD 'tests/results/vi-history'
+          New-Item -ItemType Directory -Path $receiptRoot -Force | Out-Null
+          $receiptPath = Join-Path $receiptRoot 'vi-history-bootstrap.json'
+          $receipt = [ordered]@{
+            schema = 'labview-template/vi-history-bootstrap@v1'
+            status = 'ready'
+            authoritativeConsumerPin = $pin
+            releaseAssetName = $assetName
+            releaseMetadataPath = 'comparevi-tools-release.json'
+            capabilityManifestPath = '.github/comparevi/capabilities.json'
+            lineageManifestPath = '.github/comparevi/lineage.json'
+            targetPath = '{% raw %}${{ inputs.target_path }}{% endraw %}'
+            baseRef = '{% raw %}${{ inputs.base_ref }}{% endraw %}'
+            headRef = '{% raw %}${{ inputs.head_ref }}{% endraw %}'
+            producerLineage = '{% raw %}${{ steps.manifest.outputs.producer_lineage }}{% endraw %}'
+            consumerProving = '{% raw %}${{ steps.manifest.outputs.consumer_proving }}{% endraw %}'
+            bundleCapabilityPresent = ($null -ne $bundleCapability)
+            requiredContractsResolved = $true
+          }
+          $receipt | ConvertTo-Json -Depth 10 | Out-File -LiteralPath $receiptPath -Encoding utf8
+          "receipt_path=$receiptPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Capability disabled summary
+        if: steps.manifest.outputs.enabled != 'true'
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              '### VI History capability disabled',
+              '',
+              '- status: `monitoring-only`',
+              '- no CompareVI.Tools bundle was downloaded'
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
+
+      - name: Upload vi-history bootstrap receipt
+        if: steps.manifest.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vi-history-bootstrap
+          path: {% raw %}${{ steps.bundle.outputs.receipt_path }}{% endraw %}

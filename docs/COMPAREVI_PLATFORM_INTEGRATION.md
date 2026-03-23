@@ -8,7 +8,11 @@ CompareVI platform without copying platform ownership into the consumer repo.
 - `compare-vi-cli-action`
   - owns CompareVI runtime/tooling orchestration
   - owns hosted Linux and Windows execution surfaces
-  - owns release pins for CompareVI.Tools
+  - owns release pins and capability contracts for CompareVI.Tools
+- `LabviewGitHubCiTemplate`
+  - distributes CompareVI capabilities into generated repositories
+  - stamps lineage and capability manifests for descendants
+  - keeps the consumer surface lightweight and workflow-driven
 - `comparevi-history`
   - owns review bundle compilation and reviewer-facing rendering
   - owns pull-request diagnostics publication surfaces
@@ -16,6 +20,21 @@ CompareVI platform without copying platform ownership into the consumer repo.
   - own their repository-specific triggers, docs, and proving decisions
   - should stay hosted-first
   - should not fork platform runtime logic into local scripts by default
+
+## Branch-Role Semantics
+
+When a generated repository adopts lineage-aware CompareVI distribution, keep
+these branch roles explicit:
+
+- `upstream/develop`
+  - producer-lineage plane showing what arrived from the upstream producer
+- `develop` or the generated repo's default branch
+  - repository integration plane for local product work
+- `downstream/develop`
+  - descendant consumer-proving plane for future downstream reuse
+
+The template distributes these roles as metadata first. Repositories can
+materialize the extra branches when their own supply chain needs them.
 
 ## Reference Consumer
 
@@ -34,7 +53,9 @@ Generated consumers should:
 
 1. pin released platform artifacts instead of copying Docker/runtime helpers
 2. keep hosted Linux and hosted Windows as the authoritative proving surfaces
-3. add comparevi integration as an opt-in lane after the baseline hosted
+3. use the distributed lineage and capability manifests as the local source of
+   truth for `vi-history`
+4. add comparevi integration as an opt-in lane after the baseline hosted
    workflow is healthy
 
 This keeps the consumer template portable while still providing a clear path to

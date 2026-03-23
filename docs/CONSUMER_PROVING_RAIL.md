@@ -44,6 +44,24 @@ standing-priority work.
   - remain the hosted-first proving target for downstream validation
   - should not inherit fork-only proving assumptions without explicit evidence
 
+## Lineage-Aware Descendants
+
+Generated consumers now receive a lightweight lineage contract alongside the
+hosted proving skeleton.
+
+That contract distinguishes:
+
+- `upstream/develop`
+  - upstream producer-lineage intake
+- `develop` or the generated repo's default branch
+  - integration and product authoring
+- `downstream/develop`
+  - future descendant consumer proving
+
+The template distributes those roles as machine-readable metadata so a
+generated repository can later become a producer for its own downstream
+consumers without copying compare's control plane.
+
 ## Monitoring Mode
 
 When the canonical template repo has no eligible open issue, monitoring-only is
