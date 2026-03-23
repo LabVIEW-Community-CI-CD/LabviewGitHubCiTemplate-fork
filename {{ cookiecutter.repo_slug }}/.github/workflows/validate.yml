@@ -22,76 +22,290 @@ jobs:
       - name: Consumer proving plan
         shell: pwsh
         run: |
-          $lines = @(
-            '### Consumer proving plan',
-            '',
-            ('- event: `{0}`' -f '{% raw %}${{ github.event_name }}{% endraw %}'),
-            ('- ref: `{0}`' -f '{% raw %}${{ github.ref }}{% endraw %}'),
-            ('- proving_reason: `{0}`' -f '{% raw %}${{ inputs.proving_reason || ''manual'' }}{% endraw %}'),
-            '- hosted_lanes: `ubuntu-latest`, `windows-latest`'
-          )
-          $lines -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          $capability = Get-Content -LiteralPath '.github/comparevi/capabilities.json' -Raw | ConvertFrom-Json -AsHashtable
+          $lineage = Get-Content -LiteralPath '.github/comparevi/lineage.json' -Raw | ConvertFrom-Json -AsHashtable
+          $viHistory = $capability.capabilities.viHistory
+          $enabled = [bool]$viHistory.enabled
+          $pin = $viHistory.authoritativeConsumerPin
+          $releaseAssetName = $viHistory.releaseAssetName
+          if ([string]::IsNullOrWhiteSpace($releaseAssetName)) {
+            $releaseAssetName = "CompareVI.Tools-$pin.zip"
+          }
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              '### Consumer proving plan',
+              '',
+              ('- event: `{0}`' -f '{% raw %}${{ github.event_name }}{% endraw %}'),
+              ('- ref: `{0}`' -f '{% raw %}${{ github.ref }}{% endraw %}'),
+              ('- proving_reason: `{0}`' -f '{% raw %}${{ inputs.proving_reason || ''manual'' }}{% endraw %}'),
+              ('- vi_history_enabled: `{0}`' -f $enabled.ToString().ToLowerInvariant()),
+              ('- consumer_pin: `{0}`' -f $pin),
+              ('- release_asset_name: `{0}`' -f $releaseAssetName),
+              ('- consumer_contract: `consumerContract.capabilities.viHistory`'),
+              ('- producer_lineage: `{0}`' -f $lineage.branchRoles.producerLineage),
+              ('- consumer_proving: `{0}`' -f $lineage.branchRoles.consumerProving),
+              ('- hosted_lanes: `ubuntu-latest`, `windows-latest`')
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
 
   hosted-linux:
-    needs: consumer-plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - id: comparevi
-        name: CompareVI consumer smoke
-        uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3
-        with:
-          base: tests/fixtures/comparevi/placeholder.vi
-          head: tests/fixtures/comparevi/placeholder.vi
-          fail-on-diff: 'false'
-      - name: Hosted Linux consumer lane
+      - name: Read and verify producer-native vi-history capability
+        id: bundle
         shell: pwsh
         run: |
-          if ('{% raw %}${{ steps.comparevi.outputs.shortCircuitedIdentical }}{% endraw %}' -ne 'true') {
-            throw 'Expected compare-vi consumer smoke to short-circuit identical inputs on hosted Linux.'
+          function Resolve-DottedPath {
+            param(
+              [Parameter(Mandatory = $true)]
+              [object]$InputObject,
+              [Parameter(Mandatory = $true)]
+              [string]$Path
+            )
+            $current = $InputObject
+            foreach ($segment in $Path.Split('.')) {
+              if ($current -is [System.Collections.IDictionary]) {
+                if (-not $current.Contains($segment)) {
+                  return $null
+                }
+                $current = $current[$segment]
+                continue
+              }
+              $property = $current.PSObject.Properties[$segment]
+              if (-not $property) {
+                return $null
+              }
+              $current = $property.Value
+            }
+            return $current
           }
-          Write-Host 'Hosted Linux consumer lane is ready for project-specific LabVIEW automation.'
-          Write-Host ('Repository: {0}/{1}' -f '{% raw %}${{ github.repository_owner }}{% endraw %}', '{% raw %}${{ github.event.repository.name }}{% endraw %}')
-          Write-Host ('Ref: {0}' -f '{% raw %}${{ github.ref }}{% endraw %}')
+
+          $capability = Get-Content -LiteralPath '.github/comparevi/capabilities.json' -Raw | ConvertFrom-Json -AsHashtable
+          $lineage = Get-Content -LiteralPath '.github/comparevi/lineage.json' -Raw | ConvertFrom-Json -AsHashtable
+          $viHistory = $capability.capabilities.viHistory
+          $enabled = [bool]$viHistory.enabled
+          if (-not $enabled) {
+            Write-Host 'VI history capability disabled; consumer validation is monitoring-only.'
+            if ($env:GITHUB_STEP_SUMMARY) {
+              @(
+                '### Hosted Linux consumer lane',
+                '',
+                '- status: `monitoring-only`',
+                ('- runner_os: `{0}`' -f $env:RUNNER_OS)
+              ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+            }
+            exit 0
+          }
+
+          $pin = $viHistory.authoritativeConsumerPin
+          if ([string]::IsNullOrWhiteSpace($pin)) {
+            throw 'Missing authoritative consumer pin for the distributed vi-history capability.'
+          }
+
+          $assetName = $viHistory.releaseAssetName
+          if ([string]::IsNullOrWhiteSpace($assetName)) {
+            $assetName = "CompareVI.Tools-$pin.zip"
+          }
+
+          $downloadUri = "https://github.com/LabVIEW-Community-CI-CD/compare-vi-cli-action/releases/download/$pin/$assetName"
+          $hashUri = "https://github.com/LabVIEW-Community-CI-CD/compare-vi-cli-action/releases/download/$pin/SHA256SUMS.txt"
+          $workRoot = Join-Path $env:RUNNER_TEMP 'vi-history-capability'
+          New-Item -ItemType Directory -Path $workRoot -Force | Out-Null
+          $assetPath = Join-Path $workRoot $assetName
+          $hashPath = Join-Path $workRoot 'SHA256SUMS.txt'
+          Invoke-WebRequest -Uri $downloadUri -OutFile $assetPath
+          Invoke-WebRequest -Uri $hashUri -OutFile $hashPath
+
+          $expectedLine = Get-Content -LiteralPath $hashPath | Where-Object { $_ -match [regex]::Escape($assetName) } | Select-Object -First 1
+          if (-not $expectedLine) {
+            throw "Could not find checksum entry for $assetName"
+          }
+          $expectedHash = ($expectedLine -split '\s+')[0].ToLowerInvariant()
+          $actualHash = (Get-FileHash -LiteralPath $assetPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($expectedHash -ne $actualHash) {
+            throw "Checksum mismatch for $assetName"
+          }
+
+          $extractRoot = Join-Path $workRoot 'bundle'
+          Expand-Archive -LiteralPath $assetPath -DestinationPath $extractRoot -Force
+          $metadataPath = Join-Path $extractRoot "CompareVI.Tools-$pin\\comparevi-tools-release.json"
+          if (-not (Test-Path -LiteralPath $metadataPath)) {
+            throw "Missing comparevi-tools-release.json at $metadataPath"
+          }
+          $releaseManifest = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json -AsHashtable
+          foreach ($contractPath in $viHistory.contractPaths.Values) {
+            if ($null -eq (Resolve-DottedPath -InputObject $releaseManifest -Path $contractPath)) {
+              throw "Missing contract path in release manifest: $contractPath"
+            }
+          }
+          $bundleCapability = Resolve-DottedPath -InputObject $releaseManifest -Path 'consumerContract.capabilities.viHistory'
+          if ($null -eq $bundleCapability) {
+            throw 'Producer-native vi-history capability is missing from the CompareVI.Tools release manifest.'
+          }
+          $receiptRoot = Join-Path $PWD 'tests/results/vi-history'
+          New-Item -ItemType Directory -Path $receiptRoot -Force | Out-Null
+          $receiptPath = Join-Path $receiptRoot 'validate-vi-history.json'
+          [ordered]@{
+            schema = 'labview-template/validate-vi-history@v1'
+            status = 'ready'
+            runner = $env:RUNNER_OS
+            authoritativeConsumerPin = $pin
+            releaseAssetName = $assetName
+            releaseMetadataPath = 'comparevi-tools-release.json'
+            capabilityManifestPath = '.github/comparevi/capabilities.json'
+            lineageManifestPath = '.github/comparevi/lineage.json'
+            producerLineage = $lineage.branchRoles.producerLineage
+            consumerProving = $lineage.branchRoles.consumerProving
+            bundleCapabilityPresent = $true
+            requiredContractsResolved = $true
+          } | ConvertTo-Json -Depth 10 | Out-File -LiteralPath $receiptPath -Encoding utf8
+          "receipt_path=$receiptPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           if ($env:GITHUB_STEP_SUMMARY) {
             @(
               '### Hosted Linux consumer lane',
               '',
               '- status: `ready`',
               ('- runner_os: `{0}`' -f $env:RUNNER_OS),
-              '- comparevi_ref: `LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3`',
-              ('- shortCircuitedIdentical: `{0}`' -f '{% raw %}${{ steps.comparevi.outputs.shortCircuitedIdentical }}{% endraw %}')
+              ('- comparevi_tools_consumer_pin: `{0}`' -f $pin),
+              ('- release_asset_name: `{0}`' -f $assetName),
+              ('- producer_native_contract: `consumerContract.capabilities.viHistory`')
             ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           }
 
+      - name: Upload vi-history validation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: vi-history-validation-linux
+          path: {% raw %}${{ steps.bundle.outputs.receipt_path }}{% endraw %}
+
   hosted-windows:
-    needs: consumer-plan
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
-      - id: comparevi
-        name: CompareVI consumer smoke
-        uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3
-        with:
-          base: tests/fixtures/comparevi/placeholder.vi
-          head: tests/fixtures/comparevi/placeholder.vi
-          fail-on-diff: 'false'
-      - name: Hosted Windows consumer lane
-        shell: powershell
+      - name: Read and verify producer-native vi-history capability
+        id: bundle
+        shell: pwsh
         run: |
-          if ('{% raw %}${{ steps.comparevi.outputs.shortCircuitedIdentical }}{% endraw %}' -ne 'true') {
-            throw 'Expected compare-vi consumer smoke to short-circuit identical inputs on hosted Windows.'
+          function Resolve-DottedPath {
+            param(
+              [Parameter(Mandatory = $true)]
+              [object]$InputObject,
+              [Parameter(Mandatory = $true)]
+              [string]$Path
+            )
+            $current = $InputObject
+            foreach ($segment in $Path.Split('.')) {
+              if ($current -is [System.Collections.IDictionary]) {
+                if (-not $current.Contains($segment)) {
+                  return $null
+                }
+                $current = $current[$segment]
+                continue
+              }
+              $property = $current.PSObject.Properties[$segment]
+              if (-not $property) {
+                return $null
+              }
+              $current = $property.Value
+            }
+            return $current
           }
-          Write-Host 'Hosted Windows consumer lane is ready for project-specific LabVIEW automation.'
-          Write-Host ('Repository: {0}/{1}' -f '{% raw %}${{ github.repository_owner }}{% endraw %}', '{% raw %}${{ github.event.repository.name }}{% endraw %}')
-          Write-Host ('Ref: {0}' -f '{% raw %}${{ github.ref }}{% endraw %}')
+
+          $capability = Get-Content -LiteralPath '.github/comparevi/capabilities.json' -Raw | ConvertFrom-Json -AsHashtable
+          $lineage = Get-Content -LiteralPath '.github/comparevi/lineage.json' -Raw | ConvertFrom-Json -AsHashtable
+          $viHistory = $capability.capabilities.viHistory
+          $enabled = [bool]$viHistory.enabled
+          if (-not $enabled) {
+            Write-Host 'VI history capability disabled; consumer validation is monitoring-only.'
+            if ($env:GITHUB_STEP_SUMMARY) {
+              @(
+                '### Hosted Windows consumer lane',
+                '',
+                '- status: `monitoring-only`',
+                ('- runner_os: `{0}`' -f $env:RUNNER_OS)
+              ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+            }
+            exit 0
+          }
+
+          $pin = $viHistory.authoritativeConsumerPin
+          if ([string]::IsNullOrWhiteSpace($pin)) {
+            throw 'Missing authoritative consumer pin for the distributed vi-history capability.'
+          }
+
+          $assetName = $viHistory.releaseAssetName
+          if ([string]::IsNullOrWhiteSpace($assetName)) {
+            $assetName = "CompareVI.Tools-$pin.zip"
+          }
+
+          $downloadUri = "https://github.com/LabVIEW-Community-CI-CD/compare-vi-cli-action/releases/download/$pin/$assetName"
+          $hashUri = "https://github.com/LabVIEW-Community-CI-CD/compare-vi-cli-action/releases/download/$pin/SHA256SUMS.txt"
+          $workRoot = Join-Path $env:RUNNER_TEMP 'vi-history-capability'
+          New-Item -ItemType Directory -Path $workRoot -Force | Out-Null
+          $assetPath = Join-Path $workRoot $assetName
+          $hashPath = Join-Path $workRoot 'SHA256SUMS.txt'
+          Invoke-WebRequest -Uri $downloadUri -OutFile $assetPath
+          Invoke-WebRequest -Uri $hashUri -OutFile $hashPath
+
+          $expectedLine = Get-Content -LiteralPath $hashPath | Where-Object { $_ -match [regex]::Escape($assetName) } | Select-Object -First 1
+          if (-not $expectedLine) {
+            throw "Could not find checksum entry for $assetName"
+          }
+          $expectedHash = ($expectedLine -split '\s+')[0].ToLowerInvariant()
+          $actualHash = (Get-FileHash -LiteralPath $assetPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($expectedHash -ne $actualHash) {
+            throw "Checksum mismatch for $assetName"
+          }
+
+          $extractRoot = Join-Path $workRoot 'bundle'
+          Expand-Archive -LiteralPath $assetPath -DestinationPath $extractRoot -Force
+          $metadataPath = Join-Path $extractRoot "CompareVI.Tools-$pin\comparevi-tools-release.json"
+          if (-not (Test-Path -LiteralPath $metadataPath)) {
+            throw "Missing comparevi-tools-release.json at $metadataPath"
+          }
+          $releaseManifest = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json -AsHashtable
+          foreach ($contractPath in $viHistory.contractPaths.Values) {
+            if ($null -eq (Resolve-DottedPath -InputObject $releaseManifest -Path $contractPath)) {
+              throw "Missing contract path in release manifest: $contractPath"
+            }
+          }
+          $bundleCapability = Resolve-DottedPath -InputObject $releaseManifest -Path 'consumerContract.capabilities.viHistory'
+          if ($null -eq $bundleCapability) {
+            throw 'Producer-native vi-history capability is missing from the CompareVI.Tools release manifest.'
+          }
+          $receiptRoot = Join-Path $PWD 'tests/results/vi-history'
+          New-Item -ItemType Directory -Path $receiptRoot -Force | Out-Null
+          $receiptPath = Join-Path $receiptRoot 'validate-vi-history.json'
+          [ordered]@{
+            schema = 'labview-template/validate-vi-history@v1'
+            status = 'ready'
+            runner = $env:RUNNER_OS
+            authoritativeConsumerPin = $pin
+            releaseAssetName = $assetName
+            releaseMetadataPath = 'comparevi-tools-release.json'
+            capabilityManifestPath = '.github/comparevi/capabilities.json'
+            lineageManifestPath = '.github/comparevi/lineage.json'
+            producerLineage = $lineage.branchRoles.producerLineage
+            consumerProving = $lineage.branchRoles.consumerProving
+            bundleCapabilityPresent = $true
+            requiredContractsResolved = $true
+          } | ConvertTo-Json -Depth 10 | Out-File -LiteralPath $receiptPath -Encoding utf8
+          "receipt_path=$receiptPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           if ($env:GITHUB_STEP_SUMMARY) {
             @(
               '### Hosted Windows consumer lane',
               '',
               '- status: `ready`',
               ('- runner_os: `{0}`' -f $env:RUNNER_OS),
-              '- comparevi_ref: `LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3`',
-              ('- shortCircuitedIdentical: `{0}`' -f '{% raw %}${{ steps.comparevi.outputs.shortCircuitedIdentical }}{% endraw %}')
+              ('- comparevi_tools_consumer_pin: `{0}`' -f $pin),
+              ('- release_asset_name: `{0}`' -f $assetName),
+              ('- producer_native_contract: `consumerContract.capabilities.viHistory`')
             ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           }
+
+      - name: Upload vi-history validation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: vi-history-validation-windows
+          path: {% raw %}${{ steps.bundle.outputs.receipt_path }}{% endraw %}

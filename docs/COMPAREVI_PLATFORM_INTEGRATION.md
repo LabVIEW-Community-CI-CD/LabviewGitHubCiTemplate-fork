@@ -2,6 +2,9 @@
 
 `LabviewGitHubCiTemplate` should help downstream consumers compose with the
 CompareVI platform without copying platform ownership into the consumer repo.
+The generated consumer validation workflow now resolves the authoritative
+CompareVI.Tools pin from the local capability manifest and fails closed unless
+the released bundle exposes `consumerContract.capabilities.viHistory`.
 
 ## Ownership Boundary
 
@@ -36,6 +39,14 @@ these branch roles explicit:
 The template distributes these roles as metadata first. Repositories can
 materialize the extra branches when their own supply chain needs them.
 
+Generated `validate.yml` should stay lightweight while still consuming the
+released CompareVI.Tools bundle through the distributed capability manifest:
+
+1. read `.github/comparevi/capabilities.json`
+2. resolve `authoritativeConsumerPin`
+3. download `CompareVI.Tools-$pin.zip` from the released compare bundle
+4. fail closed unless the manifest exposes `consumerContract.capabilities.viHistory`
+
 ## Reference Consumer
 
 Use `LabVIEW-Community-CI-CD/labview-icon-editor-demo` on `develop` as the
@@ -54,7 +65,7 @@ Generated consumers should:
 1. pin released platform artifacts instead of copying Docker/runtime helpers
 2. keep hosted Linux and hosted Windows as the authoritative proving surfaces
 3. use the distributed lineage and capability manifests as the local source of
-   truth for `vi-history`
+   truth for `vi-history` and generated validation
 4. for `docker` and `mixed`, read
    `.github/comparevi/capabilities.json -> capabilities.dockerProfile` as the
    template-distributed pointer to the Producer-owned image contract surface
