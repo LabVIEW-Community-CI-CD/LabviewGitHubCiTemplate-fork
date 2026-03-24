@@ -9,12 +9,13 @@ on:
 
 jobs:
   render:
-    name: render (${{ matrix.os }})
+    name: render (${{ matrix.os }}, ${{ matrix.execution_profile }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
+        execution_profile: [hosted, docker, mixed]
     steps:
       - uses: actions/checkout@v5
 
@@ -29,18 +30,27 @@ jobs:
         id: render
         shell: pwsh
         run: |
+          $executionProfile = '${{ matrix.execution_profile }}'
           $outputRoot = Join-Path $env:RUNNER_TEMP 'cookiecutter-render'
           New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
-          cookiecutter $PWD --no-input --output-dir $outputRoot `
-            project_name='Template Smoke Sample' `
-            repo_slug='template-smoke-sample' `
-            github_owner='LabVIEW-Community-CI-CD' `
-            default_branch='develop' `
-            comparevi_tools_consumer_pin='v0.6.3-tools.14' `
-            enable_vi_history_capability='yes' `
-            license_holder='LabVIEW Community CI/CD' `
-            copyright_year='2026'
-          $generatedRoot = Join-Path $outputRoot 'template-smoke-sample'
+          $repoSlug = "template-smoke-{0}-sample" -f $executionProfile
+          $cookiecutterArgs = @(
+            $PWD.Path
+            '--no-input'
+            '--output-dir'
+            $outputRoot
+            'project_name=Template Smoke Sample'
+            ('repo_slug={0}' -f $repoSlug)
+            'github_owner=LabVIEW-Community-CI-CD'
+            'default_branch=develop'
+            ('execution_profile={0}' -f $executionProfile)
+            'comparevi_tools_consumer_pin=v0.6.3-tools.14'
+            'enable_vi_history_capability=yes'
+            'license_holder=LabVIEW Community CI/CD'
+            'copyright_year=2026'
+          )
+          & cookiecutter @cookiecutterArgs
+          $generatedRoot = Join-Path $outputRoot $repoSlug
           if (-not (Test-Path -LiteralPath $generatedRoot -PathType Container)) {
             throw "Rendered project was not created at $generatedRoot"
           }
@@ -64,6 +74,45 @@ jobs:
             $candidate = Join-Path $generatedRoot $relativePath
             if (-not (Test-Path -LiteralPath $candidate)) {
               throw "Missing rendered file: $relativePath"
+            }
+          }
+          $generatedReadmePath = Join-Path $generatedRoot 'README.md'
+          $generatedReadme = Get-Content -LiteralPath $generatedReadmePath -Raw
+          $profileSnippet = ('- execution profile: `{0}`' -f $executionProfile)
+          if (-not $generatedReadme.Contains($profileSnippet)) {
+            throw "Generated README is missing execution profile snippet: $profileSnippet"
+          }
+          $generatedPlatformDocPath = Join-Path $generatedRoot 'docs/COMPAREVI_PLATFORM_INTEGRATION.md'
+          $generatedPlatformDoc = Get-Content -LiteralPath $generatedPlatformDocPath -Raw
+          $generatedProvingDocPath = Join-Path $generatedRoot 'docs/CONSUMER_PROVING_RAIL.md'
+          $generatedProvingDoc = Get-Content -LiteralPath $generatedProvingDocPath -Raw
+          switch ($executionProfile) {
+            'hosted' {
+              if ($generatedPlatformDoc -notlike '*Docker-profile follow-up: not requested in this render*') {
+                throw 'Hosted render should declare that Docker follow-up is not requested.'
+              }
+              if ($generatedPlatformDoc -like '*Docker-profile follow-up: requested*') {
+                throw 'Hosted render should not emit Docker follow-up requested text.'
+              }
+              if ($generatedProvingDoc -notlike '*current contract: hosted-only generated surface*') {
+                throw 'Hosted render should declare the hosted-only proving contract.'
+              }
+            }
+            'docker' {
+              if ($generatedPlatformDoc -notlike '*Docker-profile follow-up: requested for a future template revision*') {
+                throw 'Docker render should declare future Docker follow-up intent.'
+              }
+              if ($generatedProvingDoc -notlike '*current contract: hosted surface plus recorded future Docker follow-up intent*') {
+                throw 'Docker render should declare hosted plus future Docker follow-up intent.'
+              }
+            }
+            'mixed' {
+              if ($generatedPlatformDoc -notlike '*Docker-profile follow-up: requested alongside the hosted surface*') {
+                throw 'Mixed render should declare mixed follow-up intent.'
+              }
+              if ($generatedProvingDoc -notlike '*current contract: hosted surface plus recorded mixed-mode follow-up intent*') {
+                throw 'Mixed render should declare hosted plus mixed-mode follow-up intent.'
+              }
             }
           }
           $workflowPath = Join-Path $generatedRoot '.github/workflows/validate.yml'
@@ -119,7 +168,7 @@ jobs:
       - name: Upload rendered sample
         uses: actions/upload-artifact@v4
         with:
-          name: template-smoke-${{ matrix.os }}
+          name: template-smoke-${{ matrix.os }}-${{ matrix.execution_profile }}
           path: ${{ steps.render.outputs.generated_root }}
 
   comparevi-consumer-smoke:

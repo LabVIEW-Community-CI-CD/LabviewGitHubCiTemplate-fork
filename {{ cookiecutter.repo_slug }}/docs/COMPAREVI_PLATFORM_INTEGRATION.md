@@ -27,6 +27,18 @@ Use these local surfaces as the consumer source of truth:
 The distributed pin for CompareVI.Tools is
 `{{ cookiecutter.comparevi_tools_consumer_pin }}`.
 
+## Execution Profile
+
+- selected profile: `{{ cookiecutter.execution_profile }}`
+{% if cookiecutter.execution_profile == "hosted" -%}
+- Docker-profile follow-up: not requested in this render
+{% elif cookiecutter.execution_profile == "docker" -%}
+- Docker-profile follow-up: requested for a future template revision
+{% else -%}
+- Docker-profile follow-up: requested alongside the hosted surface
+{% endif %}
+- hosted Linux + hosted Windows remain the current distributed proof surface
+
 ## Branch Roles
 
 When this repository adopts the full lineage model, treat these branches as the

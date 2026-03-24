@@ -7,6 +7,7 @@ Generated from `LabviewGitHubCiTemplate`.
 - owner: `{{ cookiecutter.github_owner }}`
 - slug: `{{ cookiecutter.repo_slug }}`
 - default branch: `{{ cookiecutter.default_branch }}`
+- execution profile: `{{ cookiecutter.execution_profile }}`
 
 ## Hosted Validation
 
@@ -15,6 +16,18 @@ in `.github/workflows/validate.yml`.
 
 The initial workflow is intentionally small so teams can add LabVIEW-specific
 steps without first having to bootstrap a cross-OS GitHub Actions skeleton.
+
+{% if cookiecutter.execution_profile == "hosted" -%}
+The selected execution profile is `hosted`, so this generated repository does
+not request Docker-profile outputs in this template revision.
+{% elif cookiecutter.execution_profile == "docker" -%}
+The selected execution profile is `docker`, which records future Docker-profile
+intent while this template revision still distributes the hosted proving
+surface.
+{% else -%}
+The selected execution profile is `mixed`, which keeps the hosted proving
+surface and records future Docker-profile intent for follow-up template slices.
+{% endif %}
 
 ## CompareVI Integration
 
