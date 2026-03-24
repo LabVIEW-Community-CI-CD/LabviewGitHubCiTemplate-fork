@@ -12,7 +12,8 @@ This repository is intended to be used in two ways:
 ## What The First Revision Includes
 
 - BSD-3 license at the root and in generated consumers
-- `cookiecutter.json` prompts for repo identity and branch defaults
+- `cookiecutter.json` prompts for repo identity, branch defaults, and
+  execution-profile selection
 - a generated starter project with:
   - `AGENTS.md`
   - `README.md`
@@ -41,9 +42,21 @@ cookiecutter https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate.
   project_name="LabVIEW Hosted CI Sample"
   repo_slug="labview-hosted-ci-sample"
   github_owner="LabVIEW-Community-CI-CD"
+  execution_profile="hosted"
   comparevi_tools_consumer_pin="v0.6.3-tools.14"
   enable_vi_history_capability="yes"
 ```
+
+Supported `execution_profile` values:
+
+- `hosted`
+  - keep the generated repository hosted-first with no Docker-profile outputs
+- `docker`
+  - record Docker-profile intent for future follow-up slices while keeping the
+    current hosted proving contract intact in this revision
+- `mixed`
+  - keep the hosted surface and record future Docker-profile intent in the
+    generated consumer docs
 
 ## Canonical Operating Contract
 
@@ -66,6 +79,24 @@ Root repo agent entrypoints live in:
 
 Generated consumers still inherit their own `AGENTS.md`; the root files above
 only govern the canonical template repository itself.
+
+## Execution Profile Direction
+
+This template now accepts an `execution_profile` input with these supported
+values:
+
+- `hosted`
+- `docker`
+- `mixed`
+
+In this revision:
+
+- `hosted` remains the default
+- hosted Linux + hosted Windows stay the authoritative proving surfaces
+- Docker-specific contract and capability-manifest work stays in follow-up
+  implementation slices
+- `docker` and `mixed` currently record consumer intent without vendoring
+  compare runtime logic into the template
 
 ## VI History Capability Distribution
 

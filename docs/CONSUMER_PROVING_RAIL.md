@@ -34,6 +34,11 @@ standing-priority work.
 - canonical template repo
   - `template-smoke` on `push`, `pull_request`, and `workflow_dispatch` is the
     authoritative template-self-validation surface
+- generated execution-profile contract
+  - `hosted` is the default generated profile
+  - `docker` and `mixed` are accepted template inputs
+  - this revision keeps hosted proof authoritative while future Docker profile
+    slices land separately
 - consumer forks
   - keep fork `develop` aligned to canonical `develop`
   - treat `workflow_dispatch` on `template-smoke` from aligned `develop` as the

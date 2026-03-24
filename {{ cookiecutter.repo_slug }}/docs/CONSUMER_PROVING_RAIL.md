@@ -8,6 +8,18 @@ This generated repository assumes a hosted-first proving model.
 2. optional same-owner fork for shared proving
 3. optional personal fork for manual proving and remote worker routing
 
+## Execution Profile
+
+- selected profile: `{{ cookiecutter.execution_profile }}`
+{% if cookiecutter.execution_profile == "hosted" -%}
+- current contract: hosted-only generated surface
+{% elif cookiecutter.execution_profile == "docker" -%}
+- current contract: hosted surface plus recorded future Docker follow-up intent
+{% else -%}
+- current contract: hosted surface plus recorded mixed-mode follow-up intent
+{% endif %}
+- authoritative proof surface in this revision: hosted Linux + hosted Windows
+
 ## Lineage Roles
 
 This generated repository also carries a lightweight lineage contract.
