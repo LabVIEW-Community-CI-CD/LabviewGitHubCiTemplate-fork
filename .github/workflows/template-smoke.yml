@@ -33,17 +33,24 @@ jobs:
           $executionProfile = '${{ matrix.execution_profile }}'
           $outputRoot = Join-Path $env:RUNNER_TEMP 'cookiecutter-render'
           New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
-          cookiecutter $PWD --no-input --output-dir $outputRoot `
-            project_name='Template Smoke Sample' `
-            repo_slug=("template-smoke-{0}-sample" -f $executionProfile) `
-            github_owner='LabVIEW-Community-CI-CD' `
-            default_branch='develop' `
-            execution_profile=$executionProfile `
-            comparevi_tools_consumer_pin='v0.6.3-tools.14' `
-            enable_vi_history_capability='yes' `
-            license_holder='LabVIEW Community CI/CD' `
-            copyright_year='2026'
-          $generatedRoot = Join-Path $outputRoot ("template-smoke-{0}-sample" -f $executionProfile)
+          $repoSlug = "template-smoke-{0}-sample" -f $executionProfile
+          $cookiecutterArgs = @(
+            $PWD.Path
+            '--no-input'
+            '--output-dir'
+            $outputRoot
+            'project_name=Template Smoke Sample'
+            ('repo_slug={0}' -f $repoSlug)
+            'github_owner=LabVIEW-Community-CI-CD'
+            'default_branch=develop'
+            ('execution_profile={0}' -f $executionProfile)
+            'comparevi_tools_consumer_pin=v0.6.3-tools.14'
+            'enable_vi_history_capability=yes'
+            'license_holder=LabVIEW Community CI/CD'
+            'copyright_year=2026'
+          )
+          & cookiecutter @cookiecutterArgs
+          $generatedRoot = Join-Path $outputRoot $repoSlug
           if (-not (Test-Path -LiteralPath $generatedRoot -PathType Container)) {
             throw "Rendered project was not created at $generatedRoot"
           }
