@@ -1,0 +1,25 @@
+{
+  "schema": "labview-template/supported-consumer-fork-proving@v1",
+  "canonical_repository": "LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate",
+  "canonical_branch": "develop",
+  "supported_fork_proof": {
+    "workflow": "template-smoke",
+    "branch": "develop",
+    "event": "workflow_dispatch",
+    "required_conclusion": "success",
+    "alignment_requirement": "fork develop must remain aligned to canonical develop",
+    "unsupported_signals_by_themselves": [
+      "pull_request"
+    ]
+  },
+  "supported_forks": [
+    {
+      "repository": "LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate-fork",
+      "role": "organization-fork-proving-lane"
+    },
+    {
+      "repository": "svelderrainruiz/LabviewGitHubCiTemplate",
+      "role": "personal-fork-proving-lane"
+    }
+  ]
+}

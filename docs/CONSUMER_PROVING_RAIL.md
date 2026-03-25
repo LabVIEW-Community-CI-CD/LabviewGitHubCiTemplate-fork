@@ -47,8 +47,12 @@ standing-priority work.
   - keep fork `develop` aligned to canonical `develop`
   - treat `workflow_dispatch` on `template-smoke` from aligned `develop` as the
     supported fork consumer proof lane
+  - a successful fork smoke run on drifted fork `develop` is still not
+    supported consumer proof
   - treat fork-local `pull_request` proof as unsupported and never reopen work
     from it by itself
+  - keep the checked-in fork proving contract in
+    `docs/policy/supported-consumer-fork-proving.json` aligned with that rule
 - generated consumers
   - remain the hosted-first proving target for downstream validation
   - should not inherit fork-only proving assumptions without explicit evidence

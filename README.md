@@ -158,8 +158,12 @@ Current fork consumer proving guidance:
 - keep fork `develop` aligned to canonical `develop`
 - use manual `template-smoke` dispatches on aligned fork `develop` as the
   supported fork proof path
+- treat a successful `template-smoke` run on drifted fork `develop` as
+  insufficient by itself
 - treat fork-local `pull_request` proof as unsupported and do not reopen work
   from it by itself
+- keep the machine-readable fork proof contract in
+  `docs/policy/supported-consumer-fork-proving.json` aligned with that rule
 - when the canonical template queue is empty, monitoring-only is the correct
   terminal state
 
