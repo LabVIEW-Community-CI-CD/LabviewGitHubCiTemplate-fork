@@ -260,7 +260,7 @@ jobs:
               }
               foreach ($snippet in @(
                 "schema = 'labview-template/docker-profile-plan@v1'",
-                "Join-Path \$receiptRoot 'docker-profile-plan.json'",
+                '$receiptPath = Join-Path $receiptRoot ''docker-profile-plan.json''',
                 "name: docker-profile-plan"
               )) {
                 if (-not $dockerWorkflow.Contains($snippet)) {
@@ -339,7 +339,7 @@ jobs:
               }
               foreach ($snippet in @(
                 "schema = 'labview-template/docker-profile-plan@v1'",
-                "Join-Path \$receiptRoot 'docker-profile-plan.json'",
+                '$receiptPath = Join-Path $receiptRoot ''docker-profile-plan.json''',
                 "name: docker-profile-plan"
               )) {
                 if (-not $dockerWorkflow.Contains($snippet)) {
