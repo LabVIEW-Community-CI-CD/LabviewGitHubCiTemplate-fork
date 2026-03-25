@@ -55,43 +55,16 @@ jobs:
           if (-not (Test-Path -LiteralPath $generatedRoot -PathType Container)) {
             throw "Rendered project was not created at $generatedRoot"
           }
-          $required = @(
-            'AGENTS.md',
-            'README.md',
-            'LICENSE',
-            '.gitignore',
-            'docs/COMPAREVI_PLATFORM_INTEGRATION.md',
-            'docs/CONSUMER_PROVING_RAIL.md',
-            'docs/VI_HISTORY_CAPABILITY.md',
-            'tests/fixtures/comparevi/placeholder.vi',
-            '.github/comparevi/capabilities.json',
-            '.github/comparevi/lineage.json',
-            '.github/ISSUE_TEMPLATE/config.yml',
-            '.github/ISSUE_TEMPLATE/work-item.yml',
-            '.github/workflows/validate.yml',
-            '.github/workflows/vi-history.yml'
-          )
-          $dockerRequired = @(
-            'docs/DOCKER_PROFILE.md',
-            '.github/comparevi/docker-lane-policy.json',
-            '.github/workflows/docker-profile.yml'
-          )
-          $dockerForbiddenPaths = @(
-            'tools/CompareVI.Tools',
-            'tools/Run-NILinuxContainerCompare.ps1',
-            'tools/Run-NIWindowsContainerCompare.ps1',
-            'tools/Assert-DockerRuntimeDeterminism.ps1',
-            'Dockerfile',
-            'Dockerfile.windows'
-          )
-          $dockerForbiddenWorkflowSnippets = @(
-            'docker build',
-            'docker pull',
-            'docker run',
-            'tools/CompareVI.Tools',
-            'Run-NILinuxContainerCompare.ps1',
-            'Run-NIWindowsContainerCompare.ps1'
-          )
+          $dockerGovernanceContractPath = Join-Path $PWD.Path 'docs/policy/docker-execution-profile-governance-surface.json'
+          $dockerGovernanceContract = Get-Content -LiteralPath $dockerGovernanceContractPath -Raw | ConvertFrom-Json -AsHashtable
+          $profileContract = $dockerGovernanceContract.profiles[$executionProfile]
+          if ($null -eq $profileContract) {
+            throw "Execution-profile governance contract is missing profile entry: $executionProfile"
+          }
+          $required = @($dockerGovernanceContract.commonRequiredOutputs) + @($profileContract.requiredOutputs)
+          $dockerForbiddenPaths = @($dockerGovernanceContract.producerOwnedRuntimePaths)
+          $dockerForbiddenWorkflowSnippets = @($dockerGovernanceContract.producerOwnedRuntimeWorkflowSnippets)
+          $dockerWorkflowRequiredSnippets = @($dockerGovernanceContract.dockerWorkflowRequiredSnippets)
           foreach ($relativePath in $required) {
             $candidate = Join-Path $generatedRoot $relativePath
             if (-not (Test-Path -LiteralPath $candidate)) {
@@ -118,48 +91,62 @@ jobs:
           $dockerWorkflowPath = Join-Path $generatedRoot '.github/workflows/docker-profile.yml'
           switch ($executionProfile) {
             'hosted' {
-              foreach ($relativePath in $dockerRequired) {
+              foreach ($relativePath in @($profileContract.forbiddenOutputs)) {
                 $candidate = Join-Path $generatedRoot $relativePath
                 if (Test-Path -LiteralPath $candidate) {
                   throw "Hosted render should not emit Docker scaffold file: $relativePath"
                 }
               }
-              if ($generatedPlatformDoc -notlike '*Docker-profile follow-up: not requested in this render*') {
-                throw 'Hosted render should declare that Docker follow-up is not requested.'
+              foreach ($snippet in @($profileContract.requiredPlatformDocSnippets)) {
+                if (-not $generatedPlatformDoc.Contains($snippet)) {
+                  throw "Hosted render is missing required platform doc snippet: $snippet"
+                }
               }
-              if ($generatedPlatformDoc -like '*Docker-profile follow-up: requested*') {
-                throw 'Hosted render should not emit Docker follow-up requested text.'
+              foreach ($snippet in @($profileContract.forbiddenPlatformDocSnippets)) {
+                if ($generatedPlatformDoc.Contains($snippet)) {
+                  throw "Hosted render should not emit forbidden platform doc snippet: $snippet"
+                }
               }
-              if ($generatedProvingDoc -notlike '*current contract: hosted-only generated surface*') {
-                throw 'Hosted render should declare the hosted-only proving contract.'
+              foreach ($snippet in @($profileContract.requiredProvingDocSnippets)) {
+                if (-not $generatedProvingDoc.Contains($snippet)) {
+                  throw "Hosted render is missing required proving doc snippet: $snippet"
+                }
               }
             }
             'docker' {
-              foreach ($relativePath in $dockerRequired) {
+              foreach ($relativePath in @($profileContract.requiredOutputs)) {
                 $candidate = Join-Path $generatedRoot $relativePath
                 if (-not (Test-Path -LiteralPath $candidate)) {
                   throw "Docker render should emit Docker scaffold file: $relativePath"
                 }
               }
-              if (-not $generatedPlatformDoc.Contains('Docker workflow scaffold: `.github/workflows/docker-profile.yml`')) {
-                throw 'Docker render should declare the generated Docker workflow scaffold.'
+              foreach ($snippet in @($profileContract.requiredPlatformDocSnippets)) {
+                if (-not $generatedPlatformDoc.Contains($snippet)) {
+                  throw "Docker render is missing required platform doc snippet: $snippet"
+                }
               }
-              if (-not $generatedProvingDoc.Contains('current contract: hosted proof plus distributed Docker workflow/documentation scaffold')) {
-                throw 'Docker render should declare hosted proof plus distributed Docker scaffold.'
+              foreach ($snippet in @($profileContract.requiredProvingDocSnippets)) {
+                if (-not $generatedProvingDoc.Contains($snippet)) {
+                  throw "Docker render is missing required proving doc snippet: $snippet"
+                }
               }
             }
             'mixed' {
-              foreach ($relativePath in $dockerRequired) {
+              foreach ($relativePath in @($profileContract.requiredOutputs)) {
                 $candidate = Join-Path $generatedRoot $relativePath
                 if (-not (Test-Path -LiteralPath $candidate)) {
                   throw "Mixed render should emit Docker scaffold file: $relativePath"
                 }
               }
-              if (-not $generatedPlatformDoc.Contains('Docker workflow scaffold: `.github/workflows/docker-profile.yml`')) {
-                throw 'Mixed render should declare the generated Docker workflow scaffold.'
+              foreach ($snippet in @($profileContract.requiredPlatformDocSnippets)) {
+                if (-not $generatedPlatformDoc.Contains($snippet)) {
+                  throw "Mixed render is missing required platform doc snippet: $snippet"
+                }
               }
-              if (-not $generatedProvingDoc.Contains('current contract: hosted proof plus distributed Docker workflow/documentation scaffold and retained hosted surface')) {
-                throw 'Mixed render should declare hosted proof plus distributed Docker scaffold and retained hosted surface.'
+              foreach ($snippet in @($profileContract.requiredProvingDocSnippets)) {
+                if (-not $generatedProvingDoc.Contains($snippet)) {
+                  throw "Mixed render is missing required proving doc snippet: $snippet"
+                }
               }
             }
           }
@@ -247,7 +234,7 @@ jobs:
                 throw 'Docker lane policy should record the authoritative image contract source.'
               }
               $dockerWorkflow = Get-Content -LiteralPath $dockerWorkflowPath -Raw
-              foreach ($snippet in @('### Docker consumer lane', '.github/comparevi/docker-lane-policy.json', 'consumerContract.dockerImageContract', 'runtime ownership remains producer-owned')) {
+              foreach ($snippet in $dockerWorkflowRequiredSnippets) {
                 if (-not $dockerWorkflow.Contains($snippet)) {
                   throw "Docker workflow scaffold is missing required snippet: $snippet"
                 }
@@ -298,7 +285,7 @@ jobs:
                 throw 'Mixed lane policy should record the authoritative image contract source.'
               }
               $dockerWorkflow = Get-Content -LiteralPath $dockerWorkflowPath -Raw
-              foreach ($snippet in @('### Docker consumer lane', '.github/comparevi/docker-lane-policy.json', 'consumerContract.dockerImageContract', 'runtime ownership remains producer-owned')) {
+              foreach ($snippet in $dockerWorkflowRequiredSnippets) {
                 if (-not $dockerWorkflow.Contains($snippet)) {
                   throw "Mixed Docker workflow scaffold is missing required snippet: $snippet"
                 }
