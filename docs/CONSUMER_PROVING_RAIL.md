@@ -43,6 +43,8 @@ standing-priority work.
   - this revision keeps hosted proof authoritative while `docker` and `mixed`
     now distribute a Docker workflow/documentation scaffold for downstream
     adoption
+  - the checked-in execution-profile governance proof contract lives in
+    `docs/policy/docker-execution-profile-governance-surface.json`
 - consumer forks
   - keep fork `develop` aligned to canonical `develop`
   - treat `workflow_dispatch` on `template-smoke` from aligned `develop` as the

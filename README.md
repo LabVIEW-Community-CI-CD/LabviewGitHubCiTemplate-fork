@@ -104,6 +104,8 @@ In this revision:
   - `docs/DOCKER_PROFILE.md`
 - `docker` and `mixed` currently record consumer intent without vendoring
   compare runtime logic into the template
+- the checked-in governance proof contract for those surfaces lives in
+  `docs/policy/docker-execution-profile-governance-surface.json`
 
 ## VI History Capability Distribution
 

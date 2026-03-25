@@ -1,0 +1,91 @@
+{
+  "schema": "labview-template/docker-execution-profile-governance-surface@v1",
+  "commonRequiredOutputs": [
+    "AGENTS.md",
+    "README.md",
+    "LICENSE",
+    ".gitignore",
+    "docs/COMPAREVI_PLATFORM_INTEGRATION.md",
+    "docs/CONSUMER_PROVING_RAIL.md",
+    "docs/VI_HISTORY_CAPABILITY.md",
+    "tests/fixtures/comparevi/placeholder.vi",
+    ".github/comparevi/capabilities.json",
+    ".github/comparevi/lineage.json",
+    ".github/ISSUE_TEMPLATE/config.yml",
+    ".github/ISSUE_TEMPLATE/work-item.yml",
+    ".github/workflows/validate.yml",
+    ".github/workflows/vi-history.yml"
+  ],
+  "dockerGovernanceOutputs": [
+    "docs/DOCKER_PROFILE.md",
+    ".github/comparevi/docker-lane-policy.json",
+    ".github/workflows/docker-profile.yml"
+  ],
+  "producerOwnedRuntimePaths": [
+    "tools/CompareVI.Tools",
+    "tools/Run-NILinuxContainerCompare.ps1",
+    "tools/Run-NIWindowsContainerCompare.ps1",
+    "tools/Assert-DockerRuntimeDeterminism.ps1",
+    "Dockerfile",
+    "Dockerfile.windows"
+  ],
+  "producerOwnedRuntimeWorkflowSnippets": [
+    "docker build",
+    "docker pull",
+    "docker run",
+    "tools/CompareVI.Tools",
+    "Run-NILinuxContainerCompare.ps1",
+    "Run-NIWindowsContainerCompare.ps1"
+  ],
+  "dockerWorkflowRequiredSnippets": [
+    "### Docker consumer lane",
+    ".github/comparevi/docker-lane-policy.json",
+    "consumerContract.dockerImageContract",
+    "runtime ownership remains producer-owned"
+  ],
+  "profiles": {
+    "hosted": {
+      "requiredOutputs": [],
+      "forbiddenOutputs": [
+        "docs/DOCKER_PROFILE.md",
+        ".github/comparevi/docker-lane-policy.json",
+        ".github/workflows/docker-profile.yml"
+      ],
+      "requiredPlatformDocSnippets": [
+        "Docker-profile follow-up: not requested in this render"
+      ],
+      "forbiddenPlatformDocSnippets": [
+        "Docker-profile follow-up: requested"
+      ],
+      "requiredProvingDocSnippets": [
+        "current contract: hosted-only generated surface"
+      ]
+    },
+    "docker": {
+      "requiredOutputs": [
+        "docs/DOCKER_PROFILE.md",
+        ".github/comparevi/docker-lane-policy.json",
+        ".github/workflows/docker-profile.yml"
+      ],
+      "requiredPlatformDocSnippets": [
+        "Docker workflow scaffold: `.github/workflows/docker-profile.yml`"
+      ],
+      "requiredProvingDocSnippets": [
+        "current contract: hosted proof plus distributed Docker workflow/documentation scaffold"
+      ]
+    },
+    "mixed": {
+      "requiredOutputs": [
+        "docs/DOCKER_PROFILE.md",
+        ".github/comparevi/docker-lane-policy.json",
+        ".github/workflows/docker-profile.yml"
+      ],
+      "requiredPlatformDocSnippets": [
+        "Docker workflow scaffold: `.github/workflows/docker-profile.yml`"
+      ],
+      "requiredProvingDocSnippets": [
+        "current contract: hosted proof plus distributed Docker workflow/documentation scaffold and retained hosted surface"
+      ]
+    }
+  }
+}
