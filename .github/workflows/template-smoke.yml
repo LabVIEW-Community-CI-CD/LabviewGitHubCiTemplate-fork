@@ -91,6 +91,7 @@ jobs:
           $generatedPlatformDoc = Get-Content -LiteralPath $generatedPlatformDocPath -Raw
           $generatedProvingDocPath = Join-Path $generatedRoot 'docs/CONSUMER_PROVING_RAIL.md'
           $generatedProvingDoc = Get-Content -LiteralPath $generatedProvingDocPath -Raw
+          $imageContractSnippet = 'authoritative image-contract source: `consumerContract.dockerImageContract`'
           switch ($executionProfile) {
             'hosted' {
               if ($generatedPlatformDoc -notlike '*Docker-profile follow-up: not requested in this render*') {
@@ -177,7 +178,7 @@ jobs:
               if ($dockerCapability.hostedSurfaceRetained) {
                 throw 'Docker render should not report hostedSurfaceRetained.'
               }
-              if ($generatedPlatformDoc -notlike '*authoritative image-contract source: `consumerContract.dockerImageContract`*') {
+              if (-not $generatedPlatformDoc.Contains($imageContractSnippet)) {
                 throw 'Docker render should document the authoritative image contract source.'
               }
             }
@@ -197,7 +198,7 @@ jobs:
               if (-not $dockerCapability.hostedSurfaceRetained) {
                 throw 'Mixed render should report hostedSurfaceRetained.'
               }
-              if ($generatedPlatformDoc -notlike '*authoritative image-contract source: `consumerContract.dockerImageContract`*') {
+              if (-not $generatedPlatformDoc.Contains($imageContractSnippet)) {
                 throw 'Mixed render should document the authoritative image contract source.'
               }
             }
