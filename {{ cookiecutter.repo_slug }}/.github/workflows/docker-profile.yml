@@ -30,6 +30,9 @@ jobs:
           if (-not [bool]$dockerProfile.enabled) {
             throw 'Docker capability manifest entry is present but not enabled.'
           }
+          if ($policy.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
+            throw 'Docker lane policy must record consumerContract.dockerImageContract as the authoritative image contract source.'
+          }
           if ($dockerProfile.authoritativeImageContractSource -ne $policy.authoritativeImageContractSource) {
             throw 'Docker capability manifest and Docker lane policy disagree on the authoritative image contract source.'
           }
