@@ -93,7 +93,9 @@ In this revision:
 
 - `hosted` remains the default
 - hosted Linux + hosted Windows stay the authoritative proving surfaces
-- Docker-specific contract and capability-manifest work stays in follow-up
+- `docker` and `mixed` now stamp the Producer-published Docker capability
+  contract into `.github/comparevi/capabilities.json`
+- Docker workflow and lane-policy surfaces still stay in follow-up
   implementation slices
 - `docker` and `mixed` currently record consumer intent without vendoring
   compare runtime logic into the template
@@ -115,6 +117,10 @@ Generated repositories now include:
 - `.github/comparevi/lineage.json`
 - `.github/workflows/vi-history.yml`
 - `docs/VI_HISTORY_CAPABILITY.md`
+
+For `docker` and `mixed` renders, the capability manifest now also records the
+Producer-published Docker capability contract and
+`authoritativeImageContractSource = consumerContract.dockerImageContract`.
 
 The distributed lineage contract uses these branch-role semantics:
 

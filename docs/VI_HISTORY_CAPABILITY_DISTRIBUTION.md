@@ -25,6 +25,13 @@ Generated repositories receive:
 - `.github/workflows/vi-history.yml`
 - `docs/VI_HISTORY_CAPABILITY.md`
 
+For `docker` and `mixed` renders, `.github/comparevi/capabilities.json` also
+records the Producer-published Docker capability contract pointer:
+
+- capability id: `dockerProfile`
+- authoritative image-contract source: `consumerContract.dockerImageContract`
+- contract owner: `LabVIEW-Community-CI-CD/compare-vi-cli-action`
+
 ## Current Pin
 
 The default upstream consumer pin is `v0.6.3-tools.14`.
@@ -57,3 +64,8 @@ The distributed `vi-history` scaffold is intentionally lightweight:
 
 It does not copy compare's runtime governor, merge queue logic, or heavy local
 tooling surfaces into the generated repository.
+
+The Docker capability entry remains metadata-only in this slice.
+Generated repositories must still resolve the actual image contract from the
+pinned Producer release surface instead of vendoring compare implementation
+content.
