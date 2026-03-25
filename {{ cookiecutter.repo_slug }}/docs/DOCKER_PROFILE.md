@@ -77,6 +77,7 @@ image naming rules.
 `.github/workflows/docker-profile.yml` emits a deterministic receipt so the
 generated repository can prove which Docker contract surface it consumed.
 
+- receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - receipt path: `tests/results/docker-profile/docker-profile-plan.json`
 - receipt schema: `labview-template/docker-profile-plan@v1`
 - uploaded artifact name: `docker-profile-plan`

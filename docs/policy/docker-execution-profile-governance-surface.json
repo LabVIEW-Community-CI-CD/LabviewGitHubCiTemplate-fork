@@ -19,6 +19,7 @@
   "dockerGovernanceOutputs": [
     "docs/DOCKER_PROFILE.md",
     ".github/comparevi/docker-lane-policy.json",
+    ".github/comparevi/Emit-DockerProfileReceipt.ps1",
     ".github/workflows/docker-profile.yml"
   ],
   "producerOwnedRuntimePaths": [

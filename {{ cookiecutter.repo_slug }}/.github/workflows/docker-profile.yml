@@ -21,55 +21,22 @@ jobs:
         id: contract
         shell: pwsh
         run: |
-          $capability = Get-Content -LiteralPath '.github/comparevi/capabilities.json' -Raw | ConvertFrom-Json -AsHashtable
-          $policy = Get-Content -LiteralPath '.github/comparevi/docker-lane-policy.json' -Raw | ConvertFrom-Json -AsHashtable
-          $dockerProfile = $capability.capabilities.dockerProfile
-          if ($null -eq $dockerProfile) {
-            throw 'Missing capabilities.dockerProfile in .github/comparevi/capabilities.json.'
-          }
-          if (-not [bool]$dockerProfile.enabled) {
-            throw 'Docker capability manifest entry is present but not enabled.'
-          }
-          if ($policy.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
-            throw 'Docker lane policy must record consumerContract.dockerImageContract as the authoritative image contract source.'
-          }
-          if ($dockerProfile.authoritativeImageContractSource -ne $policy.authoritativeImageContractSource) {
-            throw 'Docker capability manifest and Docker lane policy disagree on the authoritative image contract source.'
-          }
-          if ($dockerProfile.requestedExecutionProfile -ne $policy.requestedExecutionProfile) {
-            throw 'Docker capability manifest and Docker lane policy disagree on the requested execution profile.'
-          }
-          if ($dockerProfile.authoritativeConsumerPin -ne $policy.authoritativeConsumerPin) {
-            throw 'Docker capability manifest and Docker lane policy disagree on the authoritative consumer pin.'
-          }
-          $receiptRoot = Join-Path $PWD 'tests/results/docker-profile'
-          New-Item -ItemType Directory -Path $receiptRoot -Force | Out-Null
-          $receiptPath = Join-Path $receiptRoot 'docker-profile-plan.json'
-          [ordered]@{
-            schema = 'labview-template/docker-profile-plan@v1'
-            requestedExecutionProfile = $policy.requestedExecutionProfile
-            authoritativeConsumerPin = $policy.authoritativeConsumerPin
-            authoritativeImageContractSource = $policy.authoritativeImageContractSource
-            hostedSurfaceRetained = [bool]$policy.hostedSurfaceRetained
-            lanePolicyPath = '.github/comparevi/docker-lane-policy.json'
-            capabilityManifestPath = '.github/comparevi/capabilities.json'
-            integrationDocPath = 'docs/DOCKER_PROFILE.md'
-            runtimeOwnership = 'producer-owned'
-          } | ConvertTo-Json -Depth 10 | Out-File -LiteralPath $receiptPath -Encoding utf8
+          $receiptPath = & .github/comparevi/Emit-DockerProfileReceipt.ps1 -RepositoryRoot $PWD.Path
+          $receipt = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json -AsHashtable
           "receipt_path=$receiptPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           if ($env:GITHUB_STEP_SUMMARY) {
             @(
               '### Docker consumer lane',
               '',
               ('- proving_reason: `{0}`' -f '{% raw %}${{ inputs.proving_reason || ''manual'' }}{% endraw %}'),
-              ('- requested_execution_profile: `{0}`' -f $policy.requestedExecutionProfile),
-              ('- authoritative_consumer_pin: `{0}`' -f $policy.authoritativeConsumerPin),
-              ('- authoritative_image_contract_source: `{0}`' -f $policy.authoritativeImageContractSource),
-              ('- hosted_surface_retained: `{0}`' -f $policy.hostedSurfaceRetained.ToString().ToLowerInvariant()),
-              ('- lane_policy_path: `{0}`' -f '.github/comparevi/docker-lane-policy.json'),
-              ('- capability_manifest_path: `{0}`' -f '.github/comparevi/capabilities.json'),
-              ('- integration_doc_path: `{0}`' -f 'docs/DOCKER_PROFILE.md'),
-              '- runtime ownership remains producer-owned'
+              ('- requested_execution_profile: `{0}`' -f $receipt.requestedExecutionProfile),
+              ('- authoritative_consumer_pin: `{0}`' -f $receipt.authoritativeConsumerPin),
+              ('- authoritative_image_contract_source: `{0}`' -f $receipt.authoritativeImageContractSource),
+              ('- hosted_surface_retained: `{0}`' -f $receipt.hostedSurfaceRetained.ToString().ToLowerInvariant()),
+              ('- lane_policy_path: `{0}`' -f $receipt.lanePolicyPath),
+              ('- capability_manifest_path: `{0}`' -f $receipt.capabilityManifestPath),
+              ('- integration_doc_path: `{0}`' -f $receipt.integrationDocPath),
+              ('- runtime_ownership: `{0}`' -f $receipt.runtimeOwnership)
             ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           }
 

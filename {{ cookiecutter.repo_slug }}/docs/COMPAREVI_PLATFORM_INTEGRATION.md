@@ -53,6 +53,7 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 - Docker workflow scaffold: `.github/workflows/docker-profile.yml`
 - Docker lane policy: `.github/comparevi/docker-lane-policy.json`
 - Docker execution doc: `docs/DOCKER_PROFILE.md`
+- receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
 - receipt artifact: `docker-profile-plan`
 {% else -%}
@@ -61,6 +62,7 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 - Docker workflow scaffold: `.github/workflows/docker-profile.yml`
 - Docker lane policy: `.github/comparevi/docker-lane-policy.json`
 - Docker execution doc: `docs/DOCKER_PROFILE.md`
+- receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
 - receipt artifact: `docker-profile-plan`
 {% endif %}

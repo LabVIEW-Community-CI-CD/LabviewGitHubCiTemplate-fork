@@ -88,6 +88,9 @@ jobs:
           $imageContractSnippet = 'authoritative image-contract source: `consumerContract.dockerImageContract`'
           $dockerDocPath = Join-Path $generatedRoot 'docs/DOCKER_PROFILE.md'
           $dockerPolicyPath = Join-Path $generatedRoot '.github/comparevi/docker-lane-policy.json'
+          $dockerReceiptScriptPath = Join-Path $generatedRoot '.github/comparevi/Emit-DockerProfileReceipt.ps1'
+          $dockerReceiptRelativePath = 'tests/results/docker-profile/docker-profile-plan.json'
+          $dockerReceiptPath = Join-Path $generatedRoot $dockerReceiptRelativePath
           $dockerWorkflowPath = Join-Path $generatedRoot '.github/workflows/docker-profile.yml'
           switch ($executionProfile) {
             'hosted' {
@@ -111,6 +114,9 @@ jobs:
                 if (-not $generatedProvingDoc.Contains($snippet)) {
                   throw "Hosted render is missing required proving doc snippet: $snippet"
                 }
+              }
+              if (Test-Path -LiteralPath $dockerReceiptPath) {
+                throw 'Hosted render should not emit a Docker receipt.'
               }
             }
             'docker' {
@@ -231,6 +237,7 @@ jobs:
               $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
               foreach ($snippet in @(
                 'workflow scaffold: `.github/workflows/docker-profile.yml`',
+                'receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`',
                 'releaseAssetName',
                 'releaseMetadataPath',
                 'bundleImportPath',
@@ -259,13 +266,45 @@ jobs:
                 }
               }
               foreach ($snippet in @(
-                "schema = 'labview-template/docker-profile-plan@v1'",
-                '$receiptPath = Join-Path $receiptRoot ''docker-profile-plan.json''',
+                '.github/comparevi/Emit-DockerProfileReceipt.ps1',
+                '"receipt_path=$receiptPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append',
                 "name: docker-profile-plan"
               )) {
                 if (-not $dockerWorkflow.Contains($snippet)) {
                   throw "Docker workflow scaffold is missing receipt contract snippet: $snippet"
                 }
+              }
+              $emittedReceiptPath = & pwsh -NoLogo -NoProfile -File $dockerReceiptScriptPath -RepositoryRoot $generatedRoot
+              if (-not (Test-Path -LiteralPath $emittedReceiptPath -PathType Leaf)) {
+                throw 'Docker render should emit a Docker receipt when the receipt helper runs.'
+              }
+              $dockerReceipt = Get-Content -LiteralPath $emittedReceiptPath -Raw | ConvertFrom-Json -AsHashtable
+              if ($dockerReceipt.schema -ne 'labview-template/docker-profile-plan@v1') {
+                throw 'Docker receipt should record the documented schema.'
+              }
+              if ($dockerReceipt.requestedExecutionProfile -ne 'docker') {
+                throw 'Docker receipt should record docker as the requested execution profile.'
+              }
+              if ($dockerReceipt.authoritativeConsumerPin -ne $dockerPolicy.authoritativeConsumerPin) {
+                throw 'Docker receipt should preserve the authoritative consumer pin from the lane policy.'
+              }
+              if ($dockerReceipt.authoritativeImageContractSource -ne $dockerPolicy.authoritativeImageContractSource) {
+                throw 'Docker receipt should preserve the authoritative image contract source from the lane policy.'
+              }
+              if ([bool]$dockerReceipt.hostedSurfaceRetained -ne [bool]$dockerPolicy.hostedSurfaceRetained) {
+                throw 'Docker receipt should preserve hostedSurfaceRetained from the lane policy.'
+              }
+              if ($dockerReceipt.lanePolicyPath -ne '.github/comparevi/docker-lane-policy.json') {
+                throw 'Docker receipt should record the Docker lane policy path.'
+              }
+              if ($dockerReceipt.capabilityManifestPath -ne '.github/comparevi/capabilities.json') {
+                throw 'Docker receipt should record the capability manifest path.'
+              }
+              if ($dockerReceipt.integrationDocPath -ne 'docs/DOCKER_PROFILE.md') {
+                throw 'Docker receipt should record the Docker integration doc path.'
+              }
+              if ($dockerReceipt.runtimeOwnership -ne 'producer-owned') {
+                throw 'Docker receipt should record producer-owned runtime ownership.'
               }
               foreach ($relativePath in $dockerForbiddenPaths) {
                 $candidate = Join-Path $generatedRoot $relativePath
@@ -310,6 +349,7 @@ jobs:
               $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
               foreach ($snippet in @(
                 'hosted surface retained: `true`',
+                'receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`',
                 'releaseAssetName',
                 'releaseMetadataPath',
                 'bundleImportPath',
@@ -338,13 +378,45 @@ jobs:
                 }
               }
               foreach ($snippet in @(
-                "schema = 'labview-template/docker-profile-plan@v1'",
-                '$receiptPath = Join-Path $receiptRoot ''docker-profile-plan.json''',
+                '.github/comparevi/Emit-DockerProfileReceipt.ps1',
+                '"receipt_path=$receiptPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append',
                 "name: docker-profile-plan"
               )) {
                 if (-not $dockerWorkflow.Contains($snippet)) {
                   throw "Mixed Docker workflow scaffold is missing receipt contract snippet: $snippet"
                 }
+              }
+              $emittedReceiptPath = & pwsh -NoLogo -NoProfile -File $dockerReceiptScriptPath -RepositoryRoot $generatedRoot
+              if (-not (Test-Path -LiteralPath $emittedReceiptPath -PathType Leaf)) {
+                throw 'Mixed render should emit a Docker receipt when the receipt helper runs.'
+              }
+              $dockerReceipt = Get-Content -LiteralPath $emittedReceiptPath -Raw | ConvertFrom-Json -AsHashtable
+              if ($dockerReceipt.schema -ne 'labview-template/docker-profile-plan@v1') {
+                throw 'Mixed receipt should record the documented schema.'
+              }
+              if ($dockerReceipt.requestedExecutionProfile -ne 'mixed') {
+                throw 'Mixed receipt should record mixed as the requested execution profile.'
+              }
+              if ($dockerReceipt.authoritativeConsumerPin -ne $dockerPolicy.authoritativeConsumerPin) {
+                throw 'Mixed receipt should preserve the authoritative consumer pin from the lane policy.'
+              }
+              if ($dockerReceipt.authoritativeImageContractSource -ne $dockerPolicy.authoritativeImageContractSource) {
+                throw 'Mixed receipt should preserve the authoritative image contract source from the lane policy.'
+              }
+              if ([bool]$dockerReceipt.hostedSurfaceRetained -ne [bool]$dockerPolicy.hostedSurfaceRetained) {
+                throw 'Mixed receipt should preserve hostedSurfaceRetained from the lane policy.'
+              }
+              if ($dockerReceipt.lanePolicyPath -ne '.github/comparevi/docker-lane-policy.json') {
+                throw 'Mixed receipt should record the Docker lane policy path.'
+              }
+              if ($dockerReceipt.capabilityManifestPath -ne '.github/comparevi/capabilities.json') {
+                throw 'Mixed receipt should record the capability manifest path.'
+              }
+              if ($dockerReceipt.integrationDocPath -ne 'docs/DOCKER_PROFILE.md') {
+                throw 'Mixed receipt should record the Docker integration doc path.'
+              }
+              if ($dockerReceipt.runtimeOwnership -ne 'producer-owned') {
+                throw 'Mixed receipt should record producer-owned runtime ownership.'
               }
               foreach ($relativePath in $dockerForbiddenPaths) {
                 $candidate = Join-Path $generatedRoot $relativePath
