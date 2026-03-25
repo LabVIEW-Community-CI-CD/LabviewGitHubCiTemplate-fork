@@ -80,10 +80,11 @@ jobs:
           $generatedReadmePath = Join-Path $generatedRoot 'README.md'
           $generatedReadme = Get-Content -LiteralPath $generatedReadmePath -Raw
           $profileSnippet = ('- execution profile: `{0}`' -f $executionProfile)
+          $pinSnippet = ('CompareVI.Tools pin: `{0}`' -f $compareViPin)
           if (-not $generatedReadme.Contains($profileSnippet)) {
             throw "Generated README is missing execution profile snippet: $profileSnippet"
           }
-          if ($generatedReadme -notlike "*CompareVI.Tools pin: ``$compareViPin``*") {
+          if (-not $generatedReadme.Contains($pinSnippet)) {
             throw "Generated README is missing the selected CompareVI.Tools pin: $compareViPin"
           }
           $generatedPlatformDocPath = Join-Path $generatedRoot 'docs/COMPAREVI_PLATFORM_INTEGRATION.md'
