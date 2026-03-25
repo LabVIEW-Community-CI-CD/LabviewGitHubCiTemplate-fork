@@ -55,13 +55,19 @@ Generated consumers should:
 2. keep hosted Linux and hosted Windows as the authoritative proving surfaces
 3. use the distributed lineage and capability manifests as the local source of
    truth for `vi-history`
-4. treat `execution_profile` as the generated consumer's declared proving mode:
+4. for `docker` and `mixed`, read
+   `.github/comparevi/capabilities.json -> capabilities.dockerProfile` as the
+   template-distributed pointer to the Producer-owned image contract surface
+5. treat `execution_profile` as the generated consumer's declared proving mode:
    - `hosted`: no Docker-profile outputs in this template revision
-   - `docker`: future Docker follow-up requested while hosted proof remains the
-     current distributed surface
-   - `mixed`: future Docker follow-up requested while hosted proof remains
-     present
-5. add comparevi integration as an opt-in lane after the baseline hosted
+   - `docker`: Docker capability metadata is distributed and hosted proof
+     remains the current workflow surface
+   - `mixed`: Docker capability metadata is distributed while hosted proof
+     remains present
+6. resolve the actual Docker image contract from the pinned
+   `comparevi-tools-release.json` payload at
+   `consumerContract.dockerImageContract`
+7. add comparevi integration as an opt-in lane after the baseline hosted
    workflow is healthy
 
 This keeps the consumer template portable while still providing a clear path to

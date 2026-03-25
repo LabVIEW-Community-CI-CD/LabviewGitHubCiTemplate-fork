@@ -21,6 +21,21 @@
         "diagnosticsCommentRenderer": "consumerContract.diagnosticsCommentRenderer",
         "hostedNiLinuxRunner": "consumerContract.hostedNiLinuxRunner"
       }
+    }{% if cookiecutter.execution_profile != "hosted" %},
+    "dockerProfile": {
+      "enabled": true,
+      "distributionRole": "template-distributor",
+      "upstreamProducerRepository": "LabVIEW-Community-CI-CD/compare-vi-cli-action",
+      "upstreamCapabilitySchema": "comparevi-tools/docker-profile-capability@v1",
+      "distributionModel": "release-bundle",
+      "authoritativeConsumerPin": "{{ cookiecutter.comparevi_tools_consumer_pin }}",
+      "releaseAssetName": "CompareVI.Tools-{{ cookiecutter.comparevi_tools_consumer_pin }}.zip",
+      "releaseMetadataPath": "comparevi-tools-release.json",
+      "bundleImportPath": "tools/CompareVI.Tools/CompareVI.Tools.psd1",
+      "authoritativeImageContractSource": "consumerContract.dockerImageContract",
+      "requestedExecutionProfile": "{{ cookiecutter.execution_profile }}",
+      "hostedSurfaceRetained": {{ "true" if cookiecutter.execution_profile == "mixed" else "false" }}
     }
+    {% endif %}
   }
 }

@@ -31,6 +31,7 @@ jobs:
         shell: pwsh
         run: |
           $executionProfile = '${{ matrix.execution_profile }}'
+          $compareViPin = if ($executionProfile -eq 'hosted') { 'v0.6.3-tools.14' } else { 'v0.6.4-rc.2' }
           $outputRoot = Join-Path $env:RUNNER_TEMP 'cookiecutter-render'
           New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
           $repoSlug = "template-smoke-{0}-sample" -f $executionProfile
@@ -44,7 +45,7 @@ jobs:
             'github_owner=LabVIEW-Community-CI-CD'
             'default_branch=develop'
             ('execution_profile={0}' -f $executionProfile)
-            'comparevi_tools_consumer_pin=v0.6.3-tools.14'
+            ('comparevi_tools_consumer_pin={0}' -f $compareViPin)
             'enable_vi_history_capability=yes'
             'license_holder=LabVIEW Community CI/CD'
             'copyright_year=2026'
@@ -81,6 +82,9 @@ jobs:
           $profileSnippet = ('- execution profile: `{0}`' -f $executionProfile)
           if (-not $generatedReadme.Contains($profileSnippet)) {
             throw "Generated README is missing execution profile snippet: $profileSnippet"
+          }
+          if ($generatedReadme -notlike "*CompareVI.Tools pin: ``$compareViPin``*") {
+            throw "Generated README is missing the selected CompareVI.Tools pin: $compareViPin"
           }
           $generatedPlatformDocPath = Join-Path $generatedRoot 'docs/COMPAREVI_PLATFORM_INTEGRATION.md'
           $generatedPlatformDoc = Get-Content -LiteralPath $generatedPlatformDocPath -Raw
@@ -137,11 +141,65 @@ jobs:
           if (-not $capability.capabilities.viHistory.enabled) {
             throw 'Rendered capability manifest should enable vi-history for template smoke.'
           }
-          if ($capability.capabilities.viHistory.authoritativeConsumerPin -ne 'v0.6.3-tools.14') {
+          if ($capability.capabilities.viHistory.authoritativeConsumerPin -ne $compareViPin) {
             throw 'Rendered capability manifest did not preserve the CompareVI.Tools consumer pin.'
           }
           if ($capability.capabilities.viHistory.contractPaths.historyFacade -ne 'consumerContract.historyFacade') {
             throw 'Rendered capability manifest is missing the distributed historyFacade contract path.'
+          }
+          $dockerCapability = $capability.capabilities.dockerProfile
+          switch ($executionProfile) {
+            'hosted' {
+              if ($null -ne $dockerCapability) {
+                throw 'Hosted render should not emit a dockerProfile capability entry.'
+              }
+            }
+            'docker' {
+              if ($null -eq $dockerCapability) {
+                throw 'Docker render should emit a dockerProfile capability entry.'
+              }
+              if (-not $dockerCapability.enabled) {
+                throw 'Docker render should enable the dockerProfile capability entry.'
+              }
+              if ($dockerCapability.upstreamCapabilitySchema -ne 'comparevi-tools/docker-profile-capability@v1') {
+                throw 'Docker render should record the published docker-profile capability schema.'
+              }
+              if ($dockerCapability.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
+                throw 'Docker render should record the authoritative image contract source.'
+              }
+              if ($dockerCapability.authoritativeConsumerPin -ne $compareViPin) {
+                throw 'Docker render should keep the CompareVI.Tools pin on the dockerProfile capability.'
+              }
+              if ($dockerCapability.requestedExecutionProfile -ne 'docker') {
+                throw 'Docker render should record docker as the requested execution profile.'
+              }
+              if ($dockerCapability.hostedSurfaceRetained) {
+                throw 'Docker render should not report hostedSurfaceRetained.'
+              }
+              if ($generatedPlatformDoc -notlike '*authoritative image-contract source: `consumerContract.dockerImageContract`*') {
+                throw 'Docker render should document the authoritative image contract source.'
+              }
+            }
+            'mixed' {
+              if ($null -eq $dockerCapability) {
+                throw 'Mixed render should emit a dockerProfile capability entry.'
+              }
+              if (-not $dockerCapability.enabled) {
+                throw 'Mixed render should enable the dockerProfile capability entry.'
+              }
+              if ($dockerCapability.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
+                throw 'Mixed render should record the authoritative image contract source.'
+              }
+              if ($dockerCapability.requestedExecutionProfile -ne 'mixed') {
+                throw 'Mixed render should record mixed as the requested execution profile.'
+              }
+              if (-not $dockerCapability.hostedSurfaceRetained) {
+                throw 'Mixed render should report hostedSurfaceRetained.'
+              }
+              if ($generatedPlatformDoc -notlike '*authoritative image-contract source: `consumerContract.dockerImageContract`*') {
+                throw 'Mixed render should document the authoritative image contract source.'
+              }
+            }
           }
           $lineagePath = Join-Path $generatedRoot '.github/comparevi/lineage.json'
           $lineage = Get-Content -LiteralPath $lineagePath -Raw | ConvertFrom-Json -AsHashtable
@@ -154,7 +212,7 @@ jobs:
           $historyWorkflowPath = Join-Path $generatedRoot '.github/workflows/vi-history.yml'
           $historyWorkflowContent = Get-Content -LiteralPath $historyWorkflowPath -Raw
           $historySnippets = @(
-            'default: v0.6.3-tools.14',
+            ('default: {0}' -f $compareViPin),
             'CompareVI.Tools-$pin.zip',
             '.github/comparevi/capabilities.json'
           )

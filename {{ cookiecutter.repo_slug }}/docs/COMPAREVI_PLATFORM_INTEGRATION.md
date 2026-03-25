@@ -32,12 +32,24 @@ The distributed pin for CompareVI.Tools is
 - selected profile: `{{ cookiecutter.execution_profile }}`
 {% if cookiecutter.execution_profile == "hosted" -%}
 - Docker-profile follow-up: not requested in this render
+- Docker capability manifest entry: omitted in this render
 {% elif cookiecutter.execution_profile == "docker" -%}
 - Docker-profile follow-up: requested for a future template revision
+- Docker capability manifest entry: `.github/comparevi/capabilities.json -> capabilities.dockerProfile`
+- authoritative image-contract source: `consumerContract.dockerImageContract`
 {% else -%}
 - Docker-profile follow-up: requested alongside the hosted surface
+- Docker capability manifest entry: `.github/comparevi/capabilities.json -> capabilities.dockerProfile`
+- authoritative image-contract source: `consumerContract.dockerImageContract`
 {% endif %}
 - hosted Linux + hosted Windows remain the current distributed proof surface
+
+{% if cookiecutter.execution_profile != "hosted" -%}
+The Docker capability entry is distributor metadata only.
+Resolve the actual image contract from the pinned Producer-published
+`comparevi-tools-release.json` payload instead of inventing repository-local
+image naming rules.
+{% endif %}
 
 ## Branch Roles
 
