@@ -125,10 +125,10 @@ jobs:
                   throw "Docker render should emit Docker scaffold file: $relativePath"
                 }
               }
-              if ($generatedPlatformDoc -notlike '*Docker workflow scaffold: `.github/workflows/docker-profile.yml`*') {
+              if (-not $generatedPlatformDoc.Contains('Docker workflow scaffold: `.github/workflows/docker-profile.yml`')) {
                 throw 'Docker render should declare the generated Docker workflow scaffold.'
               }
-              if ($generatedProvingDoc -notlike '*current contract: hosted proof plus distributed Docker workflow/documentation scaffold*') {
+              if (-not $generatedProvingDoc.Contains('current contract: hosted proof plus distributed Docker workflow/documentation scaffold')) {
                 throw 'Docker render should declare hosted proof plus distributed Docker scaffold.'
               }
             }
@@ -139,10 +139,10 @@ jobs:
                   throw "Mixed render should emit Docker scaffold file: $relativePath"
                 }
               }
-              if ($generatedPlatformDoc -notlike '*Docker workflow scaffold: `.github/workflows/docker-profile.yml`*') {
+              if (-not $generatedPlatformDoc.Contains('Docker workflow scaffold: `.github/workflows/docker-profile.yml`')) {
                 throw 'Mixed render should declare the generated Docker workflow scaffold.'
               }
-              if ($generatedProvingDoc -notlike '*current contract: hosted proof plus distributed Docker workflow/documentation scaffold and retained hosted surface*') {
+              if (-not $generatedProvingDoc.Contains('current contract: hosted proof plus distributed Docker workflow/documentation scaffold and retained hosted surface')) {
                 throw 'Mixed render should declare hosted proof plus distributed Docker scaffold and retained hosted surface.'
               }
             }
@@ -217,7 +217,7 @@ jobs:
                 throw 'Docker render should document the authoritative image contract source.'
               }
               $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
-              if ($dockerDoc -notlike '*workflow scaffold: `.github/workflows/docker-profile.yml`*') {
+              if (-not $dockerDoc.Contains('workflow scaffold: `.github/workflows/docker-profile.yml`')) {
                 throw 'Docker render should document the generated Docker workflow scaffold.'
               }
               $dockerPolicy = Get-Content -LiteralPath $dockerPolicyPath -Raw | ConvertFrom-Json -AsHashtable
@@ -232,7 +232,7 @@ jobs:
               }
               $dockerWorkflow = Get-Content -LiteralPath $dockerWorkflowPath -Raw
               foreach ($snippet in @('### Docker consumer lane', '.github/comparevi/docker-lane-policy.json', 'consumerContract.dockerImageContract', 'runtime ownership remains producer-owned')) {
-                if ($dockerWorkflow -notlike "*$snippet*") {
+                if (-not $dockerWorkflow.Contains($snippet)) {
                   throw "Docker workflow scaffold is missing required snippet: $snippet"
                 }
               }
@@ -257,7 +257,7 @@ jobs:
                 throw 'Mixed render should document the authoritative image contract source.'
               }
               $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
-              if ($dockerDoc -notlike '*hosted surface retained: `true`*') {
+              if (-not $dockerDoc.Contains('hosted surface retained: `true`')) {
                 throw 'Mixed render should document hosted surface retention.'
               }
               $dockerPolicy = Get-Content -LiteralPath $dockerPolicyPath -Raw | ConvertFrom-Json -AsHashtable
@@ -272,7 +272,7 @@ jobs:
               }
               $dockerWorkflow = Get-Content -LiteralPath $dockerWorkflowPath -Raw
               foreach ($snippet in @('### Docker consumer lane', '.github/comparevi/docker-lane-policy.json', 'consumerContract.dockerImageContract', 'runtime ownership remains producer-owned')) {
-                if ($dockerWorkflow -notlike "*$snippet*") {
+                if (-not $dockerWorkflow.Contains($snippet)) {
                   throw "Mixed Docker workflow scaffold is missing required snippet: $snippet"
                 }
               }
