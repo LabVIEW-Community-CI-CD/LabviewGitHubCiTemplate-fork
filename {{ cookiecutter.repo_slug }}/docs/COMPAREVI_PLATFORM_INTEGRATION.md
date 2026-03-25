@@ -56,6 +56,7 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 - receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
 - receipt artifact: `docker-profile-plan`
+- canonical receipt schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-profile-plan-v1.schema.json`
 {% else -%}
 - Docker-profile follow-up: requested alongside the hosted surface
 - Docker capability manifest entry: `.github/comparevi/capabilities.json -> capabilities.dockerProfile`
@@ -65,6 +66,7 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 - receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
 - receipt artifact: `docker-profile-plan`
+- canonical receipt schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-profile-plan-v1.schema.json`
 {% endif %}
 - hosted Linux + hosted Windows remain the current distributed proof surface
 

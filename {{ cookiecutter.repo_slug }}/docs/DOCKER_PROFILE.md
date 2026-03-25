@@ -80,6 +80,7 @@ generated repository can prove which Docker contract surface it consumed.
 - receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - receipt path: `tests/results/docker-profile/docker-profile-plan.json`
 - receipt schema: `labview-template/docker-profile-plan@v1`
+- canonical schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-profile-plan-v1.schema.json`
 - uploaded artifact name: `docker-profile-plan`
 
 That receipt records:
