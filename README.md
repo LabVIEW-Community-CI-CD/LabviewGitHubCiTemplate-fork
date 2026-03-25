@@ -43,7 +43,7 @@ cookiecutter https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate.
   repo_slug="labview-hosted-ci-sample"
   github_owner="LabVIEW-Community-CI-CD"
   execution_profile="hosted"
-  comparevi_tools_consumer_pin="v0.6.3-tools.14"
+  comparevi_tools_consumer_pin="v0.6.4-rc.2"
   enable_vi_history_capability="yes"
 ```
 
@@ -118,7 +118,11 @@ Generated repositories now include:
 - `.github/workflows/vi-history.yml`
 - `docs/VI_HISTORY_CAPABILITY.md`
 
-For `docker` and `mixed` renders, the capability manifest now also records the
+Generated `validate.yml` now fails closed unless the pinned CompareVI.Tools
+bundle exposes `consumerContract.capabilities.viHistory`, then runs the hosted
+consumer smoke against the same released producer-native pin.
+
+For `docker` and `mixed` renders, the capability manifest also records the
 Producer-published Docker capability contract and
 `authoritativeImageContractSource = consumerContract.dockerImageContract`.
 

@@ -1,7 +1,10 @@
 # CompareVI Platform Integration
 
 This generated repository should compose with the comparevi platform as a
-consumer, not as a second runtime owner.
+consumer, not as a second runtime owner. The generated validation workflow now
+resolves the authoritative CompareVI.Tools pin from the local capability
+manifest and fails closed unless the released bundle exposes
+`consumerContract.capabilities.viHistory`.
 
 ## Boundary
 
@@ -26,6 +29,15 @@ Use these local surfaces as the consumer source of truth:
 
 The distributed pin for CompareVI.Tools is
 `{{ cookiecutter.comparevi_tools_consumer_pin }}`.
+
+Generated `validate.yml` should stay lightweight while still consuming the
+released CompareVI.Tools bundle through the distributed capability manifest:
+
+1. read `.github/comparevi/capabilities.json`
+2. resolve `authoritativeConsumerPin`
+3. download `CompareVI.Tools-$pin.zip` from the released compare bundle
+4. fail closed unless the manifest exposes `consumerContract.capabilities.viHistory`
+5. run the hosted compare smoke against the same released producer-native pin
 
 ## Execution Profile
 

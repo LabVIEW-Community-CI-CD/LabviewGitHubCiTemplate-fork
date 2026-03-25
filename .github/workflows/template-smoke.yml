@@ -31,7 +31,7 @@ jobs:
         shell: pwsh
         run: |
           $executionProfile = '${{ matrix.execution_profile }}'
-          $compareViPin = if ($executionProfile -eq 'hosted') { 'v0.6.3-tools.14' } else { 'v0.6.4-rc.2' }
+          $compareViPin = 'v0.6.4-rc.2'
           $outputRoot = Join-Path $env:RUNNER_TEMP 'cookiecutter-render'
           New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
           $repoSlug = "template-smoke-{0}-sample" -f $executionProfile
@@ -130,8 +130,17 @@ jobs:
             '### Consumer proving plan',
             'Hosted Linux consumer lane',
             'Hosted Windows consumer lane',
-            'uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3',
-            'shortCircuitedIdentical'
+            'vi_history_enabled',
+            'release_asset_name',
+            'comparevi_ref',
+            'consumerContract.capabilities.viHistory',
+            'CompareVI.Tools-$pin.zip',
+            'Read and verify producer-native vi-history capability',
+            ('uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@{0}' -f $compareViPin),
+            'Hosted Linux compare smoke',
+            'Hosted Windows compare smoke',
+            'shortCircuitedIdentical',
+            'diff'
           )
           foreach ($snippet in $requiredSnippets) {
             if ($workflowContent -notlike "*$snippet*") {
@@ -243,7 +252,7 @@ jobs:
 
       - id: comparevi
         name: CompareVI consumer smoke
-        uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3
+        uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.4-rc.2
         with:
           base: tests/fixtures/comparevi/placeholder.vi
           head: tests/fixtures/comparevi/placeholder.vi
@@ -262,7 +271,7 @@ jobs:
             @(
               '### CompareVI consumer smoke',
               '',
-              '- pinned_ref: `LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.3`',
+              '- pinned_ref: `LabVIEW-Community-CI-CD/compare-vi-cli-action@v0.6.4-rc.2`',
               ('- runner_os: `{0}`' -f $env:RUNNER_OS),
               ('- shortCircuitedIdentical: `{0}`' -f '${{ steps.comparevi.outputs.shortCircuitedIdentical }}'),
               ('- diff: `{0}`' -f '${{ steps.comparevi.outputs.diff }}')
