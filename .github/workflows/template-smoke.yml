@@ -71,6 +71,11 @@ jobs:
             '.github/workflows/validate.yml',
             '.github/workflows/vi-history.yml'
           )
+          $dockerRequired = @(
+            'docs/DOCKER_PROFILE.md',
+            '.github/comparevi/docker-lane-policy.json',
+            '.github/workflows/docker-profile.yml'
+          )
           foreach ($relativePath in $required) {
             $candidate = Join-Path $generatedRoot $relativePath
             if (-not (Test-Path -LiteralPath $candidate)) {
@@ -92,8 +97,17 @@ jobs:
           $generatedProvingDocPath = Join-Path $generatedRoot 'docs/CONSUMER_PROVING_RAIL.md'
           $generatedProvingDoc = Get-Content -LiteralPath $generatedProvingDocPath -Raw
           $imageContractSnippet = 'authoritative image-contract source: `consumerContract.dockerImageContract`'
+          $dockerDocPath = Join-Path $generatedRoot 'docs/DOCKER_PROFILE.md'
+          $dockerPolicyPath = Join-Path $generatedRoot '.github/comparevi/docker-lane-policy.json'
+          $dockerWorkflowPath = Join-Path $generatedRoot '.github/workflows/docker-profile.yml'
           switch ($executionProfile) {
             'hosted' {
+              foreach ($relativePath in $dockerRequired) {
+                $candidate = Join-Path $generatedRoot $relativePath
+                if (Test-Path -LiteralPath $candidate) {
+                  throw "Hosted render should not emit Docker scaffold file: $relativePath"
+                }
+              }
               if ($generatedPlatformDoc -notlike '*Docker-profile follow-up: not requested in this render*') {
                 throw 'Hosted render should declare that Docker follow-up is not requested.'
               }
@@ -105,19 +119,31 @@ jobs:
               }
             }
             'docker' {
-              if ($generatedPlatformDoc -notlike '*Docker-profile follow-up: requested for a future template revision*') {
-                throw 'Docker render should declare future Docker follow-up intent.'
+              foreach ($relativePath in $dockerRequired) {
+                $candidate = Join-Path $generatedRoot $relativePath
+                if (-not (Test-Path -LiteralPath $candidate)) {
+                  throw "Docker render should emit Docker scaffold file: $relativePath"
+                }
               }
-              if ($generatedProvingDoc -notlike '*current contract: hosted surface plus recorded future Docker follow-up intent*') {
-                throw 'Docker render should declare hosted plus future Docker follow-up intent.'
+              if ($generatedPlatformDoc -notlike '*Docker workflow scaffold: `.github/workflows/docker-profile.yml`*') {
+                throw 'Docker render should declare the generated Docker workflow scaffold.'
+              }
+              if ($generatedProvingDoc -notlike '*current contract: hosted proof plus distributed Docker workflow/documentation scaffold*') {
+                throw 'Docker render should declare hosted proof plus distributed Docker scaffold.'
               }
             }
             'mixed' {
-              if ($generatedPlatformDoc -notlike '*Docker-profile follow-up: requested alongside the hosted surface*') {
-                throw 'Mixed render should declare mixed follow-up intent.'
+              foreach ($relativePath in $dockerRequired) {
+                $candidate = Join-Path $generatedRoot $relativePath
+                if (-not (Test-Path -LiteralPath $candidate)) {
+                  throw "Mixed render should emit Docker scaffold file: $relativePath"
+                }
               }
-              if ($generatedProvingDoc -notlike '*current contract: hosted surface plus recorded mixed-mode follow-up intent*') {
-                throw 'Mixed render should declare hosted plus mixed-mode follow-up intent.'
+              if ($generatedPlatformDoc -notlike '*Docker workflow scaffold: `.github/workflows/docker-profile.yml`*') {
+                throw 'Mixed render should declare the generated Docker workflow scaffold.'
+              }
+              if ($generatedProvingDoc -notlike '*current contract: hosted proof plus distributed Docker workflow/documentation scaffold and retained hosted surface*') {
+                throw 'Mixed render should declare hosted proof plus distributed Docker scaffold and retained hosted surface.'
               }
             }
           }
@@ -190,6 +216,26 @@ jobs:
               if (-not $generatedPlatformDoc.Contains($imageContractSnippet)) {
                 throw 'Docker render should document the authoritative image contract source.'
               }
+              $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
+              if ($dockerDoc -notlike '*workflow scaffold: `.github/workflows/docker-profile.yml`*') {
+                throw 'Docker render should document the generated Docker workflow scaffold.'
+              }
+              $dockerPolicy = Get-Content -LiteralPath $dockerPolicyPath -Raw | ConvertFrom-Json -AsHashtable
+              if ($dockerPolicy.requestedExecutionProfile -ne 'docker') {
+                throw 'Docker lane policy should record docker as the requested execution profile.'
+              }
+              if ($dockerPolicy.hostedSurfaceRetained) {
+                throw 'Docker lane policy should not report hostedSurfaceRetained.'
+              }
+              if ($dockerPolicy.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
+                throw 'Docker lane policy should record the authoritative image contract source.'
+              }
+              $dockerWorkflow = Get-Content -LiteralPath $dockerWorkflowPath -Raw
+              foreach ($snippet in @('### Docker consumer lane', '.github/comparevi/docker-lane-policy.json', 'consumerContract.dockerImageContract', 'runtime ownership remains producer-owned')) {
+                if ($dockerWorkflow -notlike "*$snippet*") {
+                  throw "Docker workflow scaffold is missing required snippet: $snippet"
+                }
+              }
             }
             'mixed' {
               if ($null -eq $dockerCapability) {
@@ -209,6 +255,26 @@ jobs:
               }
               if (-not $generatedPlatformDoc.Contains($imageContractSnippet)) {
                 throw 'Mixed render should document the authoritative image contract source.'
+              }
+              $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
+              if ($dockerDoc -notlike '*hosted surface retained: `true`*') {
+                throw 'Mixed render should document hosted surface retention.'
+              }
+              $dockerPolicy = Get-Content -LiteralPath $dockerPolicyPath -Raw | ConvertFrom-Json -AsHashtable
+              if ($dockerPolicy.requestedExecutionProfile -ne 'mixed') {
+                throw 'Mixed lane policy should record mixed as the requested execution profile.'
+              }
+              if (-not $dockerPolicy.hostedSurfaceRetained) {
+                throw 'Mixed lane policy should report hostedSurfaceRetained.'
+              }
+              if ($dockerPolicy.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
+                throw 'Mixed lane policy should record the authoritative image contract source.'
+              }
+              $dockerWorkflow = Get-Content -LiteralPath $dockerWorkflowPath -Raw
+              foreach ($snippet in @('### Docker consumer lane', '.github/comparevi/docker-lane-policy.json', 'consumerContract.dockerImageContract', 'runtime ownership remains producer-owned')) {
+                if ($dockerWorkflow -notlike "*$snippet*") {
+                  throw "Mixed Docker workflow scaffold is missing required snippet: $snippet"
+                }
               }
             }
           }

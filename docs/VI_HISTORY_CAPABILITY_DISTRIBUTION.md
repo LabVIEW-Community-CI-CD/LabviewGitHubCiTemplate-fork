@@ -69,6 +69,7 @@ Generated `validate.yml` now consumes the Producer-native `vi-history`
 capability contract directly from the pinned CompareVI.Tools bundle before it
 runs the hosted compare smoke.
 
-The Docker capability entry remains metadata-only in this slice. Generated
-repositories must still resolve the actual image contract from the pinned
-Producer release surface instead of vendoring compare implementation content.
+The Docker capability entry now ships with a lane policy file, a manual Docker
+workflow scaffold, and a consumer-facing Docker doc. Generated repositories
+must still resolve the actual image contract from the pinned Producer release
+surface instead of vendoring compare implementation content.

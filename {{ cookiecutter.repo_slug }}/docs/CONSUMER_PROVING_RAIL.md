@@ -14,11 +14,18 @@ This generated repository assumes a hosted-first proving model.
 {% if cookiecutter.execution_profile == "hosted" -%}
 - current contract: hosted-only generated surface
 {% elif cookiecutter.execution_profile == "docker" -%}
-- current contract: hosted surface plus recorded future Docker follow-up intent
+- current contract: hosted proof plus distributed Docker workflow/documentation scaffold
 {% else -%}
-- current contract: hosted surface plus recorded mixed-mode follow-up intent
+- current contract: hosted proof plus distributed Docker workflow/documentation scaffold and retained hosted surface
 {% endif %}
 - authoritative proof surface in this revision: hosted Linux + hosted Windows
+{% if cookiecutter.execution_profile != "hosted" -%}
+- distributed Docker scaffold:
+  - workflow: `.github/workflows/docker-profile.yml`
+  - lane policy: `.github/comparevi/docker-lane-policy.json`
+  - documentation: `docs/DOCKER_PROFILE.md`
+- Docker workflow scaffold is manual-by-default and does not replace hosted proof by itself
+{% endif %}
 
 ## Lineage Roles
 

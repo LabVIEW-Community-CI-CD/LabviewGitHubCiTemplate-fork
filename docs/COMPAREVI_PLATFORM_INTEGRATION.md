@@ -72,14 +72,19 @@ Generated consumers should:
    template-distributed pointer to the Producer-owned image contract surface
 5. treat `execution_profile` as the generated consumer's declared proving mode:
    - `hosted`: no Docker-profile outputs in this template revision
-   - `docker`: Docker capability metadata is distributed and hosted proof
-     remains the current workflow surface
-   - `mixed`: Docker capability metadata is distributed while hosted proof
-     remains present
+   - `docker`: Docker capability metadata, lane policy, workflow scaffold, and
+     consumer documentation are distributed while hosted proof remains the
+     current authoritative workflow surface
+   - `mixed`: the hosted surface remains present while the Docker capability
+     metadata, lane policy, workflow scaffold, and consumer documentation are
+     also distributed
 6. resolve the actual Docker image contract from the pinned
    `comparevi-tools-release.json` payload at
    `consumerContract.dockerImageContract`
-7. add comparevi integration as an opt-in lane after the baseline hosted
+7. treat `.github/comparevi/docker-lane-policy.json` and
+   `.github/workflows/docker-profile.yml` as consumer-facing scaffolds, not as
+   local ownership of CompareVI runtime logic
+8. add comparevi integration as an opt-in lane after the baseline hosted
    workflow is healthy
 
 This keeps the consumer template portable while still providing a clear path to

@@ -23,17 +23,25 @@ not request Docker-profile outputs in this template revision.
 Its `.github/comparevi/capabilities.json` manifest remains free of
 Docker-specific capability requirements.
 {% elif cookiecutter.execution_profile == "docker" -%}
-The selected execution profile is `docker`, which records future Docker-profile
-intent while this template revision still distributes the hosted proving
-surface.
+The selected execution profile is `docker`, which keeps hosted proving
+authoritative while also distributing the Docker workflow/documentation
+scaffold for consumer adoption.
 Its `.github/comparevi/capabilities.json` manifest records the Producer-published
 Docker capability contract and the authoritative image-contract source at
 `consumerContract.dockerImageContract`.
+This render also includes:
+- `.github/workflows/docker-profile.yml`
+- `.github/comparevi/docker-lane-policy.json`
+- `docs/DOCKER_PROFILE.md`
 {% else -%}
 The selected execution profile is `mixed`, which keeps the hosted proving
-surface and records future Docker-profile intent for follow-up template slices.
+surface and also distributes the Docker workflow/documentation scaffold.
 Its `.github/comparevi/capabilities.json` manifest records the Producer-published
 Docker capability contract and keeps the hosted surface metadata alongside it.
+This render also includes:
+- `.github/workflows/docker-profile.yml`
+- `.github/comparevi/docker-lane-policy.json`
+- `docs/DOCKER_PROFILE.md`
 {% endif %}
 
 ## CompareVI Integration
@@ -52,6 +60,11 @@ distributed by `LabviewGitHubCiTemplate`.
 - capability manifest: `.github/comparevi/capabilities.json`
 - lineage manifest: `.github/comparevi/lineage.json`
 - manual workflow scaffold: `.github/workflows/vi-history.yml`
+{% if cookiecutter.execution_profile != "hosted" %}
+- Docker workflow scaffold: `.github/workflows/docker-profile.yml`
+- Docker lane policy: `.github/comparevi/docker-lane-policy.json`
+- Docker execution doc: `docs/DOCKER_PROFILE.md`
+{% endif %}
 
 Branch-role semantics for future lineage-aware automation are:
 
@@ -70,6 +83,9 @@ capability contract in `.github/comparevi/capabilities.json`.
 - capability id: `dockerProfile`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
 - Producer contract owner: `LabVIEW-Community-CI-CD/compare-vi-cli-action`
+- workflow scaffold: `.github/workflows/docker-profile.yml`
+- lane policy: `.github/comparevi/docker-lane-policy.json`
+- execution doc: `docs/DOCKER_PROFILE.md`
 
 Use a `comparevi_tools_consumer_pin` that publishes the Docker-profile
 capability contract, such as `v0.6.4-rc.2` or later.

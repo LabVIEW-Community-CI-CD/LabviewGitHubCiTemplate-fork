@@ -23,6 +23,7 @@ This repository is intended to be used in two ways:
   - consumer proving rail docs
   - lineage and capability manifests for CompareVI integration
   - an opt-in `vi-history` distribution scaffold pinned to CompareVI.Tools
+  - a Docker workflow/documentation scaffold for `docker` and `mixed` renders
   - hosted Linux + Windows consumer-proving workflow
 - a self-validation workflow that renders the template on both `ubuntu-latest`
   and `windows-latest`
@@ -52,11 +53,11 @@ Supported `execution_profile` values:
 - `hosted`
   - keep the generated repository hosted-first with no Docker-profile outputs
 - `docker`
-  - record Docker-profile intent for future follow-up slices while keeping the
-    current hosted proving contract intact in this revision
+  - render the Docker workflow/documentation scaffold while keeping the current
+    hosted proving contract intact in this revision
 - `mixed`
-  - keep the hosted surface and record future Docker-profile intent in the
-    generated consumer docs
+  - keep the hosted surface and also render the Docker
+    workflow/documentation scaffold
 
 ## Canonical Operating Contract
 
@@ -95,8 +96,10 @@ In this revision:
 - hosted Linux + hosted Windows stay the authoritative proving surfaces
 - `docker` and `mixed` now stamp the Producer-published Docker capability
   contract into `.github/comparevi/capabilities.json`
-- Docker workflow and lane-policy surfaces still stay in follow-up
-  implementation slices
+- `docker` and `mixed` now also render:
+  - `.github/workflows/docker-profile.yml`
+  - `.github/comparevi/docker-lane-policy.json`
+  - `docs/DOCKER_PROFILE.md`
 - `docker` and `mixed` currently record consumer intent without vendoring
   compare runtime logic into the template
 
@@ -125,6 +128,12 @@ consumer smoke against the same released producer-native pin.
 For `docker` and `mixed` renders, the capability manifest also records the
 Producer-published Docker capability contract and
 `authoritativeImageContractSource = consumerContract.dockerImageContract`.
+
+Those renders now also distribute a consumer-facing Docker scaffold:
+
+- `.github/workflows/docker-profile.yml`
+- `.github/comparevi/docker-lane-policy.json`
+- `docs/DOCKER_PROFILE.md`
 
 The distributed lineage contract uses these branch-role semantics:
 

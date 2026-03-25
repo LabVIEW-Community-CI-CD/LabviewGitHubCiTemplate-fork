@@ -45,22 +45,31 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 {% if cookiecutter.execution_profile == "hosted" -%}
 - Docker-profile follow-up: not requested in this render
 - Docker capability manifest entry: omitted in this render
+- Docker workflow scaffold: omitted in this render
+- Docker lane policy: omitted in this render
 {% elif cookiecutter.execution_profile == "docker" -%}
-- Docker-profile follow-up: requested for a future template revision
+- Docker-profile follow-up: requested in this render
 - Docker capability manifest entry: `.github/comparevi/capabilities.json -> capabilities.dockerProfile`
+- Docker workflow scaffold: `.github/workflows/docker-profile.yml`
+- Docker lane policy: `.github/comparevi/docker-lane-policy.json`
+- Docker execution doc: `docs/DOCKER_PROFILE.md`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
 {% else -%}
 - Docker-profile follow-up: requested alongside the hosted surface
 - Docker capability manifest entry: `.github/comparevi/capabilities.json -> capabilities.dockerProfile`
+- Docker workflow scaffold: `.github/workflows/docker-profile.yml`
+- Docker lane policy: `.github/comparevi/docker-lane-policy.json`
+- Docker execution doc: `docs/DOCKER_PROFILE.md`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
 {% endif %}
 - hosted Linux + hosted Windows remain the current distributed proof surface
 
 {% if cookiecutter.execution_profile != "hosted" -%}
-The Docker capability entry is distributor metadata only.
+The Docker capability entry, lane policy, workflow scaffold, and execution doc
+are distributor surfaces only.
 Resolve the actual image contract from the pinned Producer-published
 `comparevi-tools-release.json` payload instead of inventing repository-local
-image naming rules.
+image naming rules or copying CompareVI runtime logic into this repository.
 {% endif %}
 
 ## Branch Roles

@@ -1,0 +1,13 @@
+{
+  "schema": "labview-template/docker-lane-policy@v1",
+  "distributionRole": "template-distributor",
+  "upstreamProducerRepository": "LabVIEW-Community-CI-CD/compare-vi-cli-action",
+  "authoritativeConsumerPin": "{{ cookiecutter.comparevi_tools_consumer_pin }}",
+  "requestedExecutionProfile": "{{ cookiecutter.execution_profile }}",
+  "hostedSurfaceRetained": {{ "true" if cookiecutter.execution_profile == "mixed" else "false" }},
+  "authoritativeImageContractSource": "consumerContract.dockerImageContract",
+  "notes": [
+    "Use this file together with .github/comparevi/capabilities.json as the local Docker scaffold contract.",
+    "Hosted Linux and hosted Windows remain authoritative until the consumer explicitly adopts Docker-backed proof."
+  ]
+}

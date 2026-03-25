@@ -37,8 +37,9 @@ standing-priority work.
 - generated execution-profile contract
   - `hosted` is the default generated profile
   - `docker` and `mixed` are accepted template inputs
-  - this revision keeps hosted proof authoritative while future Docker profile
-    slices land separately
+  - this revision keeps hosted proof authoritative while `docker` and `mixed`
+    now distribute a Docker workflow/documentation scaffold for downstream
+    adoption
 - consumer forks
   - keep fork `develop` aligned to canonical `develop`
   - treat `workflow_dispatch` on `template-smoke` from aligned `develop` as the

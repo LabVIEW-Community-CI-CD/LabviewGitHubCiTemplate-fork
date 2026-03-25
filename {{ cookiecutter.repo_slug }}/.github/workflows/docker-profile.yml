@@ -1,0 +1,40 @@
+name: docker-profile
+
+on:
+  workflow_dispatch:
+    inputs:
+      docker_reason:
+        description: Why this Docker consumer lane is being dispatched.
+        required: false
+        default: manual
+
+jobs:
+  docker-consumer-lane:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Read Docker scaffold contract
+        shell: pwsh
+        run: |
+          $capability = Get-Content -LiteralPath '.github/comparevi/capabilities.json' -Raw | ConvertFrom-Json -AsHashtable
+          $policy = Get-Content -LiteralPath '.github/comparevi/docker-lane-policy.json' -Raw | ConvertFrom-Json -AsHashtable
+          $dockerProfile = $capability.capabilities.dockerProfile
+          if ($null -eq $dockerProfile) {
+            throw 'Missing dockerProfile capability in the generated capability manifest.'
+          }
+          if ($policy.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
+            throw 'Unexpected authoritative image-contract source in the Docker lane policy.'
+          }
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              '### Docker consumer lane',
+              '',
+              ('- docker_reason: `{0}`' -f '{% raw %}${{ inputs.docker_reason || ''manual'' }}{% endraw %}'),
+              ('- execution_profile: `{{ cookiecutter.execution_profile }}`'),
+              ('- policy_path: `.github/comparevi/docker-lane-policy.json`'),
+              ('- authoritative_image_contract_source: `{0}`' -f $policy.authoritativeImageContractSource),
+              ('- hosted_surface_retained: `{0}`' -f [bool]$policy.hostedSurfaceRetained),
+              '- runtime ownership remains producer-owned'
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
