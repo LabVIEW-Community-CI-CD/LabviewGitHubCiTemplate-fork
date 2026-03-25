@@ -90,6 +90,7 @@ capability contract in `.github/comparevi/capabilities.json`.
 - workflow scaffold: `.github/workflows/docker-profile.yml`
 - lane policy: `.github/comparevi/docker-lane-policy.json`
 - execution doc: `docs/DOCKER_PROFILE.md`
+- receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - receipt artifact: `docker-profile-plan`
 - receipt path: `tests/results/docker-profile/docker-profile-plan.json`
 

@@ -13,6 +13,7 @@ def remove_if_present(relative_path: str) -> None:
 if EXECUTION_PROFILE == "hosted":
     for relative_path in (
         ".github/comparevi/docker-lane-policy.json",
+        ".github/comparevi/Emit-DockerProfileReceipt.ps1",
         ".github/workflows/docker-profile.yml",
         "docs/DOCKER_PROFILE.md",
     ):

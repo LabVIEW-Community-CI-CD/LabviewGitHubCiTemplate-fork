@@ -19,6 +19,7 @@
   "dockerGovernanceOutputs": [
     "docs/DOCKER_PROFILE.md",
     ".github/comparevi/docker-lane-policy.json",
+    ".github/comparevi/Emit-DockerProfileReceipt.ps1",
     ".github/workflows/docker-profile.yml"
   ],
   "producerOwnedRuntimePaths": [
@@ -39,9 +40,9 @@
   ],
   "dockerWorkflowRequiredSnippets": [
     "### Docker consumer lane",
-    ".github/comparevi/docker-lane-policy.json",
-    "consumerContract.dockerImageContract",
-    "runtime ownership remains producer-owned"
+    ".github/comparevi/Emit-DockerProfileReceipt.ps1",
+    "\"receipt_path=$receiptPath\"",
+    "docker-profile-plan"
   ],
   "profiles": {
     "hosted": {
