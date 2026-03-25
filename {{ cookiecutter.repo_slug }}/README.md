@@ -89,6 +89,8 @@ capability contract in `.github/comparevi/capabilities.json`.
 - Producer contract owner: `LabVIEW-Community-CI-CD/compare-vi-cli-action`
 - workflow scaffold: `.github/workflows/docker-profile.yml`
 - lane policy: `.github/comparevi/docker-lane-policy.json`
+- lane-policy schema: `labview-template/docker-lane-policy@v1`
+- canonical lane-policy schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-lane-policy-v1.schema.json`
 - execution doc: `docs/DOCKER_PROFILE.md`
 - receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - receipt artifact: `docker-profile-plan`

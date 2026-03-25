@@ -106,6 +106,8 @@ In this revision:
   compare runtime logic into the template
 - the checked-in governance proof contract for those surfaces lives in
   `docs/policy/docker-execution-profile-governance-surface.json`
+- the checked-in Docker lane-policy schema for descendant-facing policy proof
+  lives in `docs/schemas/labview-template-docker-lane-policy-v1.schema.json`
 - the checked-in Docker receipt schema for descendant-facing proof lives in
   `docs/schemas/labview-template-docker-profile-plan-v1.schema.json`
 

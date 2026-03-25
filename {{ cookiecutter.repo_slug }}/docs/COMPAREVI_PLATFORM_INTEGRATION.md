@@ -52,6 +52,7 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 - Docker capability manifest entry: `.github/comparevi/capabilities.json -> capabilities.dockerProfile`
 - Docker workflow scaffold: `.github/workflows/docker-profile.yml`
 - Docker lane policy: `.github/comparevi/docker-lane-policy.json`
+- canonical lane-policy schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-lane-policy-v1.schema.json`
 - Docker execution doc: `docs/DOCKER_PROFILE.md`
 - receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
@@ -62,6 +63,7 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 - Docker capability manifest entry: `.github/comparevi/capabilities.json -> capabilities.dockerProfile`
 - Docker workflow scaffold: `.github/workflows/docker-profile.yml`
 - Docker lane policy: `.github/comparevi/docker-lane-policy.json`
+- canonical lane-policy schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-lane-policy-v1.schema.json`
 - Docker execution doc: `docs/DOCKER_PROFILE.md`
 - receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - authoritative image-contract source: `consumerContract.dockerImageContract`

@@ -45,6 +45,8 @@ standing-priority work.
     adoption
   - the checked-in execution-profile governance proof contract lives in
     `docs/policy/docker-execution-profile-governance-surface.json`
+  - the checked-in Docker lane-policy schema for that scaffold lives in
+    `docs/schemas/labview-template-docker-lane-policy-v1.schema.json`
   - the checked-in Docker receipt schema for that scaffold lives in
     `docs/schemas/labview-template-docker-profile-plan-v1.schema.json`
 - consumer forks

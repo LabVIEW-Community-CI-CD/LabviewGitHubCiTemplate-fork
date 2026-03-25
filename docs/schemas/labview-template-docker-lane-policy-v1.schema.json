@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/blob/develop/docs/schemas/labview-template-docker-lane-policy-v1.schema.json",
+  "title": "LabVIEW Template Docker Lane Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "distributionRole",
+    "upstreamProducerRepository",
+    "authoritativeConsumerPin",
+    "requestedExecutionProfile",
+    "hostedSurfaceRetained",
+    "authoritativeImageContractSource",
+    "notes"
+  ],
+  "properties": {
+    "schema": {
+      "const": "labview-template/docker-lane-policy@v1"
+    },
+    "distributionRole": {
+      "const": "template-distributor"
+    },
+    "upstreamProducerRepository": {
+      "const": "LabVIEW-Community-CI-CD/compare-vi-cli-action"
+    },
+    "authoritativeConsumerPin": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requestedExecutionProfile": {
+      "enum": [
+        "docker",
+        "mixed"
+      ]
+    },
+    "hostedSurfaceRetained": {
+      "type": "boolean"
+    },
+    "authoritativeImageContractSource": {
+      "const": "consumerContract.dockerImageContract"
+    },
+    "notes": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "const": "Use this file together with .github/comparevi/capabilities.json as the local Docker scaffold contract."
+        },
+        {
+          "const": "Hosted Linux and hosted Windows remain authoritative until the consumer explicitly adopts Docker-backed proof."
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "requestedExecutionProfile": {
+            "const": "docker"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "hostedSurfaceRetained": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "requestedExecutionProfile": {
+            "const": "mixed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "hostedSurfaceRetained": {
+            "const": true
+          }
+        }
+      }
+    }
+  ]
+}

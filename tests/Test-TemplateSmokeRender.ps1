@@ -12,6 +12,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$dockerLanePolicySchemaPath = Join-Path $repoRoot 'docs/schemas/labview-template-docker-lane-policy-v1.schema.json'
 $dockerReceiptSchemaPath = Join-Path $repoRoot 'docs/schemas/labview-template-docker-profile-plan-v1.schema.json'
 $runnerTemp = if ([string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)) { [System.IO.Path]::GetTempPath() } else { $env:RUNNER_TEMP }
 $outputRoot = Join-Path $runnerTemp 'cookiecutter-render'
@@ -243,6 +244,7 @@ else {
         'releaseAssetName',
         'releaseMetadataPath',
         'bundleImportPath',
+        'canonical lane-policy schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-lane-policy-v1.schema.json`',
         'receipt path: `tests/results/docker-profile/docker-profile-plan.json`',
         'receipt schema: `labview-template/docker-profile-plan@v1`',
         'uploaded artifact name: `docker-profile-plan`'
@@ -252,7 +254,11 @@ else {
         }
       }
 
-      $dockerPolicy = Get-Content -LiteralPath $dockerPolicyPath -Raw | ConvertFrom-Json -AsHashtable
+      $dockerPolicyJson = Get-Content -LiteralPath $dockerPolicyPath -Raw
+      if (-not (Test-Json -Json $dockerPolicyJson -SchemaFile $dockerLanePolicySchemaPath)) {
+        throw 'Docker lane policy should validate against the checked-in Docker lane-policy schema.'
+      }
+      $dockerPolicy = $dockerPolicyJson | ConvertFrom-Json -AsHashtable
       if ($dockerPolicy.requestedExecutionProfile -ne 'docker') {
         throw 'Docker lane policy should record docker as the requested execution profile.'
       }
@@ -364,6 +370,7 @@ else {
         'releaseAssetName',
         'releaseMetadataPath',
         'bundleImportPath',
+        'canonical lane-policy schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-lane-policy-v1.schema.json`',
         'receipt path: `tests/results/docker-profile/docker-profile-plan.json`',
         'receipt schema: `labview-template/docker-profile-plan@v1`',
         'uploaded artifact name: `docker-profile-plan`'
@@ -373,7 +380,11 @@ else {
         }
       }
 
-      $dockerPolicy = Get-Content -LiteralPath $dockerPolicyPath -Raw | ConvertFrom-Json -AsHashtable
+      $dockerPolicyJson = Get-Content -LiteralPath $dockerPolicyPath -Raw
+      if (-not (Test-Json -Json $dockerPolicyJson -SchemaFile $dockerLanePolicySchemaPath)) {
+        throw 'Mixed lane policy should validate against the checked-in Docker lane-policy schema.'
+      }
+      $dockerPolicy = $dockerPolicyJson | ConvertFrom-Json -AsHashtable
       if ($dockerPolicy.requestedExecutionProfile -ne 'mixed') {
         throw 'Mixed lane policy should record mixed as the requested execution profile.'
       }

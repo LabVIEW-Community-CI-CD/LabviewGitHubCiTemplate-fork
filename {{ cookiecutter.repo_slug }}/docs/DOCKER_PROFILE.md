@@ -67,6 +67,8 @@ Use `.github/comparevi/capabilities.json` and
 - pinned CompareVI.Tools release
 - authoritative image-contract source
 - whether the hosted surface remains retained
+- lane-policy schema: `labview-template/docker-lane-policy@v1`
+- canonical lane-policy schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-lane-policy-v1.schema.json`
 
 Resolve the actual Docker image contract from the pinned
 `comparevi-tools-release.json` payload instead of inventing repository-local
