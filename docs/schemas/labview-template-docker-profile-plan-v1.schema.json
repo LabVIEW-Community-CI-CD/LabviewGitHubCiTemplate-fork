@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/blob/develop/docs/schemas/labview-template-docker-profile-plan-v1.schema.json",
+  "title": "LabVIEW Template Docker Profile Plan Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "requestedExecutionProfile",
+    "authoritativeConsumerPin",
+    "authoritativeImageContractSource",
+    "hostedSurfaceRetained",
+    "lanePolicyPath",
+    "capabilityManifestPath",
+    "integrationDocPath",
+    "runtimeOwnership"
+  ],
+  "properties": {
+    "schema": {
+      "const": "labview-template/docker-profile-plan@v1"
+    },
+    "requestedExecutionProfile": {
+      "type": "string",
+      "enum": [
+        "docker",
+        "mixed"
+      ]
+    },
+    "authoritativeConsumerPin": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authoritativeImageContractSource": {
+      "const": "consumerContract.dockerImageContract"
+    },
+    "hostedSurfaceRetained": {
+      "type": "boolean"
+    },
+    "lanePolicyPath": {
+      "const": ".github/comparevi/docker-lane-policy.json"
+    },
+    "capabilityManifestPath": {
+      "const": ".github/comparevi/capabilities.json"
+    },
+    "integrationDocPath": {
+      "const": "docs/DOCKER_PROFILE.md"
+    },
+    "runtimeOwnership": {
+      "const": "producer-owned"
+    }
+  }
+}

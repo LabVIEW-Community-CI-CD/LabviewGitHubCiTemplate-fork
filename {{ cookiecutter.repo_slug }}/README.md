@@ -93,6 +93,7 @@ capability contract in `.github/comparevi/capabilities.json`.
 - receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`
 - receipt artifact: `docker-profile-plan`
 - receipt path: `tests/results/docker-profile/docker-profile-plan.json`
+- canonical receipt schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-profile-plan-v1.schema.json`
 
 Use a `comparevi_tools_consumer_pin` that publishes the Docker-profile
 capability contract, such as `v0.6.4-rc.2` or later.

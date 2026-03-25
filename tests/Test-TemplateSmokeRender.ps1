@@ -12,6 +12,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$dockerReceiptSchemaPath = Join-Path $repoRoot 'docs/schemas/labview-template-docker-profile-plan-v1.schema.json'
 $runnerTemp = if ([string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)) { [System.IO.Path]::GetTempPath() } else { $env:RUNNER_TEMP }
 $outputRoot = Join-Path $runnerTemp 'cookiecutter-render'
 New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
@@ -282,7 +283,11 @@ else {
       if (-not (Test-Path -LiteralPath $emittedReceiptPath -PathType Leaf)) {
         throw 'Docker render should emit a Docker receipt when the receipt helper runs.'
       }
-      $dockerReceipt = Get-Content -LiteralPath $emittedReceiptPath -Raw | ConvertFrom-Json -AsHashtable
+      $dockerReceiptJson = Get-Content -LiteralPath $emittedReceiptPath -Raw
+      if (-not (Test-Json -Json $dockerReceiptJson -SchemaFile $dockerReceiptSchemaPath)) {
+        throw 'Docker receipt should validate against the checked-in Docker receipt schema.'
+      }
+      $dockerReceipt = $dockerReceiptJson | ConvertFrom-Json -AsHashtable
       if ($dockerReceipt.schema -ne 'labview-template/docker-profile-plan@v1') {
         throw 'Docker receipt should record the documented schema.'
       }
@@ -399,7 +404,11 @@ else {
       if (-not (Test-Path -LiteralPath $emittedReceiptPath -PathType Leaf)) {
         throw 'Mixed render should emit a Docker receipt when the receipt helper runs.'
       }
-      $dockerReceipt = Get-Content -LiteralPath $emittedReceiptPath -Raw | ConvertFrom-Json -AsHashtable
+      $dockerReceiptJson = Get-Content -LiteralPath $emittedReceiptPath -Raw
+      if (-not (Test-Json -Json $dockerReceiptJson -SchemaFile $dockerReceiptSchemaPath)) {
+        throw 'Mixed receipt should validate against the checked-in Docker receipt schema.'
+      }
+      $dockerReceipt = $dockerReceiptJson | ConvertFrom-Json -AsHashtable
       if ($dockerReceipt.schema -ne 'labview-template/docker-profile-plan@v1') {
         throw 'Mixed receipt should record the documented schema.'
       }

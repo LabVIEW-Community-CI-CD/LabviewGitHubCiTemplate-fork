@@ -45,6 +45,8 @@ standing-priority work.
     adoption
   - the checked-in execution-profile governance proof contract lives in
     `docs/policy/docker-execution-profile-governance-surface.json`
+  - the checked-in Docker receipt schema for that scaffold lives in
+    `docs/schemas/labview-template-docker-profile-plan-v1.schema.json`
 - consumer forks
   - keep fork `develop` aligned to canonical `develop`
   - treat `workflow_dispatch` on `template-smoke` from aligned `develop` as the
