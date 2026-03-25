@@ -19,6 +19,9 @@ contract published by `compare-vi-cli-action`.
 Use `.github/comparevi/capabilities.json -> capabilities.dockerProfile` as the
 machine-readable Docker manifest contract.
 
+The canonical capability-manifest schema source is
+`LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`.
+
 That entry records:
 
 - `authoritativeConsumerPin`
@@ -67,6 +70,8 @@ Use `.github/comparevi/capabilities.json` and
 - pinned CompareVI.Tools release
 - authoritative image-contract source
 - whether the hosted surface remains retained
+- capability schema: `labview-template/comparevi-capabilities@v1`
+- canonical capability-manifest schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`
 - lane-policy schema: `labview-template/docker-lane-policy@v1`
 - canonical lane-policy schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-lane-policy-v1.schema.json`
 

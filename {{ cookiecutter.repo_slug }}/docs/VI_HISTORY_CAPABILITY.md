@@ -13,6 +13,8 @@ capability pack.
 ## Local Surfaces
 
 - capability manifest: `.github/comparevi/capabilities.json`
+- capability schema: `labview-template/comparevi-capabilities@v1`
+- canonical capability-manifest schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`
 - lineage manifest: `.github/comparevi/lineage.json`
 - manual workflow scaffold: `.github/workflows/vi-history.yml`
 

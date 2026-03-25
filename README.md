@@ -106,6 +106,9 @@ In this revision:
   compare runtime logic into the template
 - the checked-in governance proof contract for those surfaces lives in
   `docs/policy/docker-execution-profile-governance-surface.json`
+- the checked-in capability-manifest schema for descendant-facing CompareVI
+  contract proof lives in
+  `docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`
 - the checked-in Docker lane-policy schema for descendant-facing policy proof
   lives in `docs/schemas/labview-template-docker-lane-policy-v1.schema.json`
 - the checked-in Docker receipt schema for descendant-facing proof lives in
@@ -128,6 +131,9 @@ Generated repositories now include:
 - `.github/comparevi/lineage.json`
 - `.github/workflows/vi-history.yml`
 - `docs/VI_HISTORY_CAPABILITY.md`
+
+The checked-in schema contract for `.github/comparevi/capabilities.json` lives
+at `docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`.
 
 Generated `validate.yml` now fails closed unless the pinned CompareVI.Tools
 bundle exposes `consumerContract.capabilities.viHistory`, then runs the hosted

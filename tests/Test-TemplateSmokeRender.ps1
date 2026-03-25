@@ -12,6 +12,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$capabilitiesSchemaPath = Join-Path $repoRoot 'docs/schemas/labview-template-comparevi-capabilities-v1.schema.json'
 $dockerLanePolicySchemaPath = Join-Path $repoRoot 'docs/schemas/labview-template-docker-lane-policy-v1.schema.json'
 $dockerReceiptSchemaPath = Join-Path $repoRoot 'docs/schemas/labview-template-docker-profile-plan-v1.schema.json'
 $runnerTemp = if ([string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)) { [System.IO.Path]::GetTempPath() } else { $env:RUNNER_TEMP }
@@ -79,12 +80,25 @@ try {
   $generatedPlatformDoc = Get-Content -LiteralPath $generatedPlatformDocPath -Raw
   $generatedProvingDocPath = Join-Path $generatedRoot 'docs/CONSUMER_PROVING_RAIL.md'
   $generatedProvingDoc = Get-Content -LiteralPath $generatedProvingDocPath -Raw
+  $generatedViHistoryDocPath = Join-Path $generatedRoot 'docs/VI_HISTORY_CAPABILITY.md'
+  $generatedViHistoryDoc = Get-Content -LiteralPath $generatedViHistoryDocPath -Raw
   $imageContractSnippet = 'authoritative image-contract source: `consumerContract.dockerImageContract`'
+  $capabilitySchemaSourcePath = 'LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json'
   $dockerDocPath = Join-Path $generatedRoot 'docs/DOCKER_PROFILE.md'
   $dockerPolicyPath = Join-Path $generatedRoot '.github/comparevi/docker-lane-policy.json'
   $dockerReceiptScriptPath = Join-Path $generatedRoot '.github/comparevi/Emit-DockerProfileReceipt.ps1'
   $dockerReceiptPath = Join-Path $generatedRoot 'tests/results/docker-profile/docker-profile-plan.json'
   $dockerWorkflowPath = Join-Path $generatedRoot '.github/workflows/docker-profile.yml'
+
+  if (-not $generatedReadme.Contains($capabilitySchemaSourcePath)) {
+    throw 'Generated README is missing the canonical capability-manifest schema source.'
+  }
+  if (-not $generatedPlatformDoc.Contains($capabilitySchemaSourcePath)) {
+    throw 'Generated platform integration doc is missing the canonical capability-manifest schema source.'
+  }
+  if (-not $generatedViHistoryDoc.Contains($capabilitySchemaSourcePath)) {
+    throw 'Generated vi-history capability doc is missing the canonical capability-manifest schema source.'
+  }
 
   switch ($ExecutionProfile) {
     'hosted' {
@@ -179,23 +193,30 @@ try {
   }
 
   $capabilityPath = Join-Path $generatedRoot '.github/comparevi/capabilities.json'
-  $capability = Get-Content -LiteralPath $capabilityPath -Raw | ConvertFrom-Json -AsHashtable
+  $capabilityJson = Get-Content -LiteralPath $capabilityPath -Raw
+  if (-not (Test-Json -Json $capabilityJson -SchemaFile $capabilitiesSchemaPath)) {
+    throw 'Rendered capability manifest should validate against the checked-in capability-manifest schema.'
+  }
+  $capability = $capabilityJson | ConvertFrom-Json -AsHashtable
   if (-not $capability.capabilities.viHistory.enabled) {
     throw 'Rendered capability manifest should enable vi-history for template smoke.'
   }
   if ($capability.capabilities.viHistory.authoritativeConsumerPin -ne $CompareViPin) {
     throw 'Rendered capability manifest did not preserve the CompareVI.Tools consumer pin.'
   }
-  if ($capability.capabilities.viHistory.contractPaths.historyFacade -ne 'consumerContract.historyFacade') {
-    throw 'Rendered capability manifest is missing the distributed historyFacade contract path.'
+  if ($capability.capabilities.viHistory.releaseAssetName -ne "CompareVI.Tools-$CompareViPin.zip") {
+    throw 'Rendered capability manifest did not preserve the CompareVI.Tools release asset name.'
+  }
+  if ($capability.capabilities.viHistory.releaseMetadataPath -ne 'comparevi-tools-release.json') {
+    throw 'Rendered capability manifest did not preserve the CompareVI.Tools release metadata path.'
   }
 
-$dockerCapability = if ($capability.capabilities.ContainsKey('dockerProfile')) {
-  $capability.capabilities.dockerProfile
-}
-else {
-  $null
-}
+  $dockerCapability = if ($capability.capabilities.ContainsKey('dockerProfile')) {
+    $capability.capabilities.dockerProfile
+  }
+  else {
+    $null
+  }
   switch ($ExecutionProfile) {
     'hosted' {
       if ($null -ne $dockerCapability) {
@@ -205,15 +226,6 @@ else {
     'docker' {
       if ($null -eq $dockerCapability) {
         throw 'Docker render should emit a dockerProfile capability entry.'
-      }
-      if (-not $dockerCapability.enabled) {
-        throw 'Docker render should enable the dockerProfile capability entry.'
-      }
-      if ($dockerCapability.upstreamCapabilitySchema -ne 'comparevi-tools/docker-profile-capability@v1') {
-        throw 'Docker render should record the published docker-profile capability schema.'
-      }
-      if ($dockerCapability.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
-        throw 'Docker render should record the authoritative image contract source.'
       }
       if ($dockerCapability.authoritativeConsumerPin -ne $CompareViPin) {
         throw 'Docker render should keep the CompareVI.Tools pin on the dockerProfile capability.'
@@ -238,6 +250,9 @@ else {
       }
 
       $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
+      if (-not $dockerDoc.Contains($capabilitySchemaSourcePath)) {
+        throw 'Docker render should document the canonical capability-manifest schema source.'
+      }
       foreach ($snippet in @(
         'workflow scaffold: `.github/workflows/docker-profile.yml`',
         'receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`',
@@ -338,11 +353,8 @@ else {
       if ($null -eq $dockerCapability) {
         throw 'Mixed render should emit a dockerProfile capability entry.'
       }
-      if (-not $dockerCapability.enabled) {
-        throw 'Mixed render should enable the dockerProfile capability entry.'
-      }
-      if ($dockerCapability.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
-        throw 'Mixed render should record the authoritative image contract source.'
+      if ($dockerCapability.authoritativeConsumerPin -ne $CompareViPin) {
+        throw 'Mixed render should keep the CompareVI.Tools pin on the dockerProfile capability.'
       }
       if ($dockerCapability.releaseAssetName -ne "CompareVI.Tools-$CompareViPin.zip") {
         throw 'Mixed render should record the released CompareVI.Tools asset name on the dockerProfile capability.'
@@ -364,6 +376,9 @@ else {
       }
 
       $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
+      if (-not $dockerDoc.Contains($capabilitySchemaSourcePath)) {
+        throw 'Mixed render should document the canonical capability-manifest schema source.'
+      }
       foreach ($snippet in @(
         'hosted surface retained: `true`',
         'receipt helper: `.github/comparevi/Emit-DockerProfileReceipt.ps1`',

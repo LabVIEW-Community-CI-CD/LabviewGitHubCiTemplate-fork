@@ -58,6 +58,8 @@ distributed by `LabviewGitHubCiTemplate`.
 - enabled: `{{ cookiecutter.enable_vi_history_capability }}`
 - CompareVI.Tools pin: `{{ cookiecutter.comparevi_tools_consumer_pin }}`
 - capability manifest: `.github/comparevi/capabilities.json`
+- capability schema: `labview-template/comparevi-capabilities@v1`
+- canonical capability-manifest schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`
 - lineage manifest: `.github/comparevi/lineage.json`
 - manual workflow scaffold: `.github/workflows/vi-history.yml`
 {% if cookiecutter.execution_profile != "hosted" %}
@@ -87,6 +89,7 @@ capability contract in `.github/comparevi/capabilities.json`.
 - requested execution profile: `{{ cookiecutter.execution_profile }}`
 - hosted surface retained: `{{ "true" if cookiecutter.execution_profile == "mixed" else "false" }}`
 - Producer contract owner: `LabVIEW-Community-CI-CD/compare-vi-cli-action`
+- canonical capability-manifest schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`
 - workflow scaffold: `.github/workflows/docker-profile.yml`
 - lane policy: `.github/comparevi/docker-lane-policy.json`
 - lane-policy schema: `labview-template/docker-lane-policy@v1`

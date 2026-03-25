@@ -23,6 +23,8 @@ This repository inherits a distributed `vi-history` pack from the template.
 Use these local surfaces as the consumer source of truth:
 
 - `.github/comparevi/capabilities.json`
+- canonical capability-manifest schema source:
+  `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`
 - `.github/comparevi/lineage.json`
 - `.github/workflows/vi-history.yml`
 - `docs/VI_HISTORY_CAPABILITY.md`
@@ -34,6 +36,8 @@ Generated `validate.yml` should stay lightweight while still consuming the
 released CompareVI.Tools bundle through the distributed capability manifest:
 
 1. read `.github/comparevi/capabilities.json`
+   - canonical capability-manifest schema source:
+     `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`
 2. resolve `authoritativeConsumerPin`
 3. download `CompareVI.Tools-$pin.zip` from the released compare bundle
 4. fail closed unless the manifest exposes `consumerContract.capabilities.viHistory`

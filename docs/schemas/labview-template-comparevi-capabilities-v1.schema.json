@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/blob/develop/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json",
+  "title": "LabVIEW Template CompareVI Capabilities Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "templateDistributorRepository",
+    "templateDistributorBranch",
+    "capabilities"
+  ],
+  "properties": {
+    "schema": {
+      "const": "labview-template/comparevi-capabilities@v1"
+    },
+    "templateDistributorRepository": {
+      "const": "LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate"
+    },
+    "templateDistributorBranch": {
+      "const": "develop"
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "viHistory"
+      ],
+      "properties": {
+        "viHistory": {
+          "$ref": "#/$defs/viHistoryCapability"
+        },
+        "dockerProfile": {
+          "$ref": "#/$defs/dockerProfileCapability"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "releaseAssetName": {
+      "type": "string",
+      "pattern": "^CompareVI\\.Tools-.+\\.zip$"
+    },
+    "viHistoryContractPaths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "historyFacade",
+        "localRuntimeProfiles",
+        "localOperatorSession",
+        "diagnosticsCommentRenderer",
+        "hostedNiLinuxRunner"
+      ],
+      "properties": {
+        "historyFacade": {
+          "const": "consumerContract.historyFacade"
+        },
+        "localRuntimeProfiles": {
+          "const": "consumerContract.localRuntimeProfiles"
+        },
+        "localOperatorSession": {
+          "const": "consumerContract.localOperatorSession"
+        },
+        "diagnosticsCommentRenderer": {
+          "const": "consumerContract.diagnosticsCommentRenderer"
+        },
+        "hostedNiLinuxRunner": {
+          "const": "consumerContract.hostedNiLinuxRunner"
+        }
+      }
+    },
+    "viHistoryCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "distributionRole",
+        "upstreamProducerRepository",
+        "upstreamCapabilitySchema",
+        "distributionModel",
+        "authoritativeConsumerPin",
+        "releaseAssetName",
+        "releaseMetadataPath",
+        "generatedWorkflowPath",
+        "integrationDocPath",
+        "contractPaths"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "distributionRole": {
+          "const": "template-distributor"
+        },
+        "upstreamProducerRepository": {
+          "const": "LabVIEW-Community-CI-CD/compare-vi-cli-action"
+        },
+        "upstreamCapabilitySchema": {
+          "const": "comparevi-tools/vi-history-capability@v1"
+        },
+        "distributionModel": {
+          "const": "release-bundle"
+        },
+        "authoritativeConsumerPin": {
+          "type": "string",
+          "minLength": 1
+        },
+        "releaseAssetName": {
+          "$ref": "#/$defs/releaseAssetName"
+        },
+        "releaseMetadataPath": {
+          "const": "comparevi-tools-release.json"
+        },
+        "generatedWorkflowPath": {
+          "const": ".github/workflows/vi-history.yml"
+        },
+        "integrationDocPath": {
+          "const": "docs/VI_HISTORY_CAPABILITY.md"
+        },
+        "contractPaths": {
+          "$ref": "#/$defs/viHistoryContractPaths"
+        }
+      }
+    },
+    "dockerProfileCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "distributionRole",
+        "upstreamProducerRepository",
+        "upstreamCapabilitySchema",
+        "distributionModel",
+        "authoritativeConsumerPin",
+        "releaseAssetName",
+        "releaseMetadataPath",
+        "bundleImportPath",
+        "authoritativeImageContractSource",
+        "requestedExecutionProfile",
+        "hostedSurfaceRetained"
+      ],
+      "properties": {
+        "enabled": {
+          "const": true
+        },
+        "distributionRole": {
+          "const": "template-distributor"
+        },
+        "upstreamProducerRepository": {
+          "const": "LabVIEW-Community-CI-CD/compare-vi-cli-action"
+        },
+        "upstreamCapabilitySchema": {
+          "const": "comparevi-tools/docker-profile-capability@v1"
+        },
+        "distributionModel": {
+          "const": "release-bundle"
+        },
+        "authoritativeConsumerPin": {
+          "type": "string",
+          "minLength": 1
+        },
+        "releaseAssetName": {
+          "$ref": "#/$defs/releaseAssetName"
+        },
+        "releaseMetadataPath": {
+          "const": "comparevi-tools-release.json"
+        },
+        "bundleImportPath": {
+          "const": "tools/CompareVI.Tools/CompareVI.Tools.psd1"
+        },
+        "authoritativeImageContractSource": {
+          "const": "consumerContract.dockerImageContract"
+        },
+        "requestedExecutionProfile": {
+          "enum": [
+            "docker",
+            "mixed"
+          ]
+        },
+        "hostedSurfaceRetained": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "requestedExecutionProfile": {
+                "const": "docker"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "hostedSurfaceRetained": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "requestedExecutionProfile": {
+                "const": "mixed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "hostedSurfaceRetained": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

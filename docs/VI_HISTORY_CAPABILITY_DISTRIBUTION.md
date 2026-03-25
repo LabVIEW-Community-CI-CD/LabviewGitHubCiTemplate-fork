@@ -24,6 +24,8 @@ Generated repositories receive:
 - `.github/comparevi/lineage.json`
 - `.github/workflows/vi-history.yml`
 - `docs/VI_HISTORY_CAPABILITY.md`
+- canonical capability-manifest schema source:
+  `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-comparevi-capabilities-v1.schema.json`
 
 For `docker` and `mixed` renders, `.github/comparevi/capabilities.json` also
 records the Producer-published Docker capability contract pointer:
