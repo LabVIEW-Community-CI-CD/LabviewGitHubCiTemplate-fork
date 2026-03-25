@@ -76,6 +76,22 @@ jobs:
             '.github/comparevi/docker-lane-policy.json',
             '.github/workflows/docker-profile.yml'
           )
+          $dockerForbiddenPaths = @(
+            'tools/CompareVI.Tools',
+            'tools/Run-NILinuxContainerCompare.ps1',
+            'tools/Run-NIWindowsContainerCompare.ps1',
+            'tools/Assert-DockerRuntimeDeterminism.ps1',
+            'Dockerfile',
+            'Dockerfile.windows'
+          )
+          $dockerForbiddenWorkflowSnippets = @(
+            'docker build',
+            'docker pull',
+            'docker run',
+            'tools/CompareVI.Tools',
+            'Run-NILinuxContainerCompare.ps1',
+            'Run-NIWindowsContainerCompare.ps1'
+          )
           foreach ($relativePath in $required) {
             $candidate = Join-Path $generatedRoot $relativePath
             if (-not (Test-Path -LiteralPath $candidate)) {
@@ -236,6 +252,17 @@ jobs:
                   throw "Docker workflow scaffold is missing required snippet: $snippet"
                 }
               }
+              foreach ($relativePath in $dockerForbiddenPaths) {
+                $candidate = Join-Path $generatedRoot $relativePath
+                if (Test-Path -LiteralPath $candidate) {
+                  throw "Docker render should stay bounded to consumer governance surfaces and must not emit: $relativePath"
+                }
+              }
+              foreach ($snippet in $dockerForbiddenWorkflowSnippets) {
+                if ($dockerWorkflow.Contains($snippet)) {
+                  throw "Docker workflow scaffold should not vendor producer runtime behavior: $snippet"
+                }
+              }
             }
             'mixed' {
               if ($null -eq $dockerCapability) {
@@ -274,6 +301,17 @@ jobs:
               foreach ($snippet in @('### Docker consumer lane', '.github/comparevi/docker-lane-policy.json', 'consumerContract.dockerImageContract', 'runtime ownership remains producer-owned')) {
                 if (-not $dockerWorkflow.Contains($snippet)) {
                   throw "Mixed Docker workflow scaffold is missing required snippet: $snippet"
+                }
+              }
+              foreach ($relativePath in $dockerForbiddenPaths) {
+                $candidate = Join-Path $generatedRoot $relativePath
+                if (Test-Path -LiteralPath $candidate) {
+                  throw "Mixed render should stay bounded to consumer governance surfaces and must not emit: $relativePath"
+                }
+              }
+              foreach ($snippet in $dockerForbiddenWorkflowSnippets) {
+                if ($dockerWorkflow.Contains($snippet)) {
+                  throw "Mixed Docker workflow scaffold should not vendor producer runtime behavior: $snippet"
                 }
               }
             }
