@@ -34,7 +34,7 @@ records the Producer-published Docker capability contract pointer:
 
 ## Current Pin
 
-The default upstream consumer pin is `v0.6.3-tools.14`.
+The default upstream consumer pin is `v0.6.4-rc.2`.
 
 That pin is intentionally stored in the template prompt surface so future
 template revisions can advance the pin without forcing downstream repos to copy
@@ -65,7 +65,10 @@ The distributed `vi-history` scaffold is intentionally lightweight:
 It does not copy compare's runtime governor, merge queue logic, or heavy local
 tooling surfaces into the generated repository.
 
-The Docker capability entry remains metadata-only in this slice.
-Generated repositories must still resolve the actual image contract from the
-pinned Producer release surface instead of vendoring compare implementation
-content.
+Generated `validate.yml` now consumes the Producer-native `vi-history`
+capability contract directly from the pinned CompareVI.Tools bundle before it
+runs the hosted compare smoke.
+
+The Docker capability entry remains metadata-only in this slice. Generated
+repositories must still resolve the actual image contract from the pinned
+Producer release surface instead of vendoring compare implementation content.

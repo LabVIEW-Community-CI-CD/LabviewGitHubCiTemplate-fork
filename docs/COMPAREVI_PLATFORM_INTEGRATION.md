@@ -46,6 +46,7 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 2. resolve `authoritativeConsumerPin`
 3. download `CompareVI.Tools-$pin.zip` from the released compare bundle
 4. fail closed unless the manifest exposes `consumerContract.capabilities.viHistory`
+5. run the hosted compare smoke against the same released producer-native pin
 
 ## Reference Consumer
 

@@ -19,6 +19,7 @@ jobs:
   consumer-plan:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
       - name: Consumer proving plan
         shell: pwsh
         run: |
@@ -41,6 +42,7 @@ jobs:
               ('- vi_history_enabled: `{0}`' -f $enabled.ToString().ToLowerInvariant()),
               ('- consumer_pin: `{0}`' -f $pin),
               ('- release_asset_name: `{0}`' -f $releaseAssetName),
+              ('- comparevi_ref: `LabVIEW-Community-CI-CD/compare-vi-cli-action@{0}`' -f $pin),
               ('- consumer_contract: `consumerContract.capabilities.viHistory`'),
               ('- producer_lineage: `{0}`' -f $lineage.branchRoles.producerLineage),
               ('- consumer_proving: `{0}`' -f $lineage.branchRoles.consumerProving),
@@ -49,6 +51,7 @@ jobs:
           }
 
   hosted-linux:
+    needs: consumer-plan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -85,8 +88,26 @@ jobs:
           $lineage = Get-Content -LiteralPath '.github/comparevi/lineage.json' -Raw | ConvertFrom-Json -AsHashtable
           $viHistory = $capability.capabilities.viHistory
           $enabled = [bool]$viHistory.enabled
+          $receiptRoot = Join-Path $PWD 'tests/results/vi-history'
+          New-Item -ItemType Directory -Path $receiptRoot -Force | Out-Null
+          $receiptPath = Join-Path $receiptRoot 'validate-vi-history.json'
           if (-not $enabled) {
             Write-Host 'VI history capability disabled; consumer validation is monitoring-only.'
+            [ordered]@{
+              schema = 'labview-template/validate-vi-history@v1'
+              status = 'monitoring-only'
+              runner = $env:RUNNER_OS
+              authoritativeConsumerPin = $null
+              releaseAssetName = $null
+              releaseMetadataPath = 'comparevi-tools-release.json'
+              capabilityManifestPath = '.github/comparevi/capabilities.json'
+              lineageManifestPath = '.github/comparevi/lineage.json'
+              producerLineage = $lineage.branchRoles.producerLineage
+              consumerProving = $lineage.branchRoles.consumerProving
+              bundleCapabilityPresent = $false
+              requiredContractsResolved = $false
+            } | ConvertTo-Json -Depth 10 | Out-File -LiteralPath $receiptPath -Encoding utf8
+            "receipt_path=$receiptPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
             if ($env:GITHUB_STEP_SUMMARY) {
               @(
                 '### Hosted Linux consumer lane',
@@ -143,9 +164,6 @@ jobs:
           if ($null -eq $bundleCapability) {
             throw 'Producer-native vi-history capability is missing from the CompareVI.Tools release manifest.'
           }
-          $receiptRoot = Join-Path $PWD 'tests/results/vi-history'
-          New-Item -ItemType Directory -Path $receiptRoot -Force | Out-Null
-          $receiptPath = Join-Path $receiptRoot 'validate-vi-history.json'
           [ordered]@{
             schema = 'labview-template/validate-vi-history@v1'
             status = 'ready'
@@ -173,6 +191,34 @@ jobs:
             ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           }
 
+      - id: comparevi
+        name: CompareVI consumer smoke
+        uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@{{ cookiecutter.comparevi_tools_consumer_pin }}
+        with:
+          base: tests/fixtures/comparevi/placeholder.vi
+          head: tests/fixtures/comparevi/placeholder.vi
+          fail-on-diff: 'false'
+
+      - name: Assert hosted Linux compare smoke
+        shell: pwsh
+        run: |
+          if ('{% raw %}${{ steps.comparevi.outputs.shortCircuitedIdentical }}{% endraw %}' -ne 'true') {
+            throw 'Expected compare-vi consumer smoke to short-circuit identical inputs on hosted Linux.'
+          }
+          if ('{% raw %}${{ steps.comparevi.outputs.diff }}{% endraw %}' -ne 'false') {
+            throw 'Expected compare-vi consumer smoke to report no diff for identical inputs on hosted Linux.'
+          }
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              '### Hosted Linux compare smoke',
+              '',
+              '- status: `ready`',
+              ('- comparevi_ref: `LabVIEW-Community-CI-CD/compare-vi-cli-action@{0}`' -f '{{ cookiecutter.comparevi_tools_consumer_pin }}'),
+              ('- shortCircuitedIdentical: `{0}`' -f '{% raw %}${{ steps.comparevi.outputs.shortCircuitedIdentical }}{% endraw %}'),
+              ('- diff: `{0}`' -f '{% raw %}${{ steps.comparevi.outputs.diff }}{% endraw %}')
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
+
       - name: Upload vi-history validation receipt
         uses: actions/upload-artifact@v4
         with:
@@ -180,6 +226,7 @@ jobs:
           path: {% raw %}${{ steps.bundle.outputs.receipt_path }}{% endraw %}
 
   hosted-windows:
+    needs: consumer-plan
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
@@ -216,8 +263,26 @@ jobs:
           $lineage = Get-Content -LiteralPath '.github/comparevi/lineage.json' -Raw | ConvertFrom-Json -AsHashtable
           $viHistory = $capability.capabilities.viHistory
           $enabled = [bool]$viHistory.enabled
+          $receiptRoot = Join-Path $PWD 'tests/results/vi-history'
+          New-Item -ItemType Directory -Path $receiptRoot -Force | Out-Null
+          $receiptPath = Join-Path $receiptRoot 'validate-vi-history.json'
           if (-not $enabled) {
             Write-Host 'VI history capability disabled; consumer validation is monitoring-only.'
+            [ordered]@{
+              schema = 'labview-template/validate-vi-history@v1'
+              status = 'monitoring-only'
+              runner = $env:RUNNER_OS
+              authoritativeConsumerPin = $null
+              releaseAssetName = $null
+              releaseMetadataPath = 'comparevi-tools-release.json'
+              capabilityManifestPath = '.github/comparevi/capabilities.json'
+              lineageManifestPath = '.github/comparevi/lineage.json'
+              producerLineage = $lineage.branchRoles.producerLineage
+              consumerProving = $lineage.branchRoles.consumerProving
+              bundleCapabilityPresent = $false
+              requiredContractsResolved = $false
+            } | ConvertTo-Json -Depth 10 | Out-File -LiteralPath $receiptPath -Encoding utf8
+            "receipt_path=$receiptPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
             if ($env:GITHUB_STEP_SUMMARY) {
               @(
                 '### Hosted Windows consumer lane',
@@ -274,9 +339,6 @@ jobs:
           if ($null -eq $bundleCapability) {
             throw 'Producer-native vi-history capability is missing from the CompareVI.Tools release manifest.'
           }
-          $receiptRoot = Join-Path $PWD 'tests/results/vi-history'
-          New-Item -ItemType Directory -Path $receiptRoot -Force | Out-Null
-          $receiptPath = Join-Path $receiptRoot 'validate-vi-history.json'
           [ordered]@{
             schema = 'labview-template/validate-vi-history@v1'
             status = 'ready'
@@ -301,6 +363,34 @@ jobs:
               ('- comparevi_tools_consumer_pin: `{0}`' -f $pin),
               ('- release_asset_name: `{0}`' -f $assetName),
               ('- producer_native_contract: `consumerContract.capabilities.viHistory`')
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
+
+      - id: comparevi
+        name: CompareVI consumer smoke
+        uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@{{ cookiecutter.comparevi_tools_consumer_pin }}
+        with:
+          base: tests/fixtures/comparevi/placeholder.vi
+          head: tests/fixtures/comparevi/placeholder.vi
+          fail-on-diff: 'false'
+
+      - name: Assert hosted Windows compare smoke
+        shell: pwsh
+        run: |
+          if ('{% raw %}${{ steps.comparevi.outputs.shortCircuitedIdentical }}{% endraw %}' -ne 'true') {
+            throw 'Expected compare-vi consumer smoke to short-circuit identical inputs on hosted Windows.'
+          }
+          if ('{% raw %}${{ steps.comparevi.outputs.diff }}{% endraw %}' -ne 'false') {
+            throw 'Expected compare-vi consumer smoke to report no diff for identical inputs on hosted Windows.'
+          }
+          if ($env:GITHUB_STEP_SUMMARY) {
+            @(
+              '### Hosted Windows compare smoke',
+              '',
+              '- status: `ready`',
+              ('- comparevi_ref: `LabVIEW-Community-CI-CD/compare-vi-cli-action@{0}`' -f '{{ cookiecutter.comparevi_tools_consumer_pin }}'),
+              ('- shortCircuitedIdentical: `{0}`' -f '{% raw %}${{ steps.comparevi.outputs.shortCircuitedIdentical }}{% endraw %}'),
+              ('- diff: `{0}`' -f '{% raw %}${{ steps.comparevi.outputs.diff }}{% endraw %}')
             ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           }
 
