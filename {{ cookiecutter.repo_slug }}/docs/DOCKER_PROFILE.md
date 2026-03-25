@@ -14,6 +14,25 @@ contract published by `compare-vi-cli-action`.
 - authoritative image-contract source: `consumerContract.dockerImageContract`
 - CompareVI.Tools pin: `{{ cookiecutter.comparevi_tools_consumer_pin }}`
 
+## Capability Manifest Contract
+
+Use `.github/comparevi/capabilities.json -> capabilities.dockerProfile` as the
+machine-readable Docker manifest contract.
+
+That entry records:
+
+- `authoritativeConsumerPin`
+- `releaseAssetName`
+- `releaseMetadataPath`
+- `bundleImportPath`
+- `authoritativeImageContractSource`
+- `requestedExecutionProfile`
+- `hostedSurfaceRetained`
+
+Those fields tell the generated consumer which released CompareVI.Tools bundle
+to trust and how to resolve the Producer-owned Docker image contract from the
+same pinned release metadata.
+
 ## Selected Profile
 
 - execution profile: `{{ cookiecutter.execution_profile }}`
@@ -52,3 +71,23 @@ Use `.github/comparevi/capabilities.json` and
 Resolve the actual Docker image contract from the pinned
 `comparevi-tools-release.json` payload instead of inventing repository-local
 image naming rules.
+
+## Workflow Receipt Contract
+
+`.github/workflows/docker-profile.yml` emits a deterministic receipt so the
+generated repository can prove which Docker contract surface it consumed.
+
+- receipt path: `tests/results/docker-profile/docker-profile-plan.json`
+- receipt schema: `labview-template/docker-profile-plan@v1`
+- uploaded artifact name: `docker-profile-plan`
+
+That receipt records:
+
+- `requestedExecutionProfile`
+- `authoritativeConsumerPin`
+- `authoritativeImageContractSource`
+- `hostedSurfaceRetained`
+- `lanePolicyPath`
+- `capabilityManifestPath`
+- `integrationDocPath`
+- `runtimeOwnership`

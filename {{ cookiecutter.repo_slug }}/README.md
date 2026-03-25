@@ -82,10 +82,16 @@ capability contract in `.github/comparevi/capabilities.json`.
 
 - capability id: `dockerProfile`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
+- release asset name: `CompareVI.Tools-{{ cookiecutter.comparevi_tools_consumer_pin }}.zip`
+- release metadata path: `comparevi-tools-release.json`
+- requested execution profile: `{{ cookiecutter.execution_profile }}`
+- hosted surface retained: `{{ "true" if cookiecutter.execution_profile == "mixed" else "false" }}`
 - Producer contract owner: `LabVIEW-Community-CI-CD/compare-vi-cli-action`
 - workflow scaffold: `.github/workflows/docker-profile.yml`
 - lane policy: `.github/comparevi/docker-lane-policy.json`
 - execution doc: `docs/DOCKER_PROFILE.md`
+- receipt artifact: `docker-profile-plan`
+- receipt path: `tests/results/docker-profile/docker-profile-plan.json`
 
 Use a `comparevi_tools_consumer_pin` that publishes the Docker-profile
 capability contract, such as `v0.6.4-rc.2` or later.
