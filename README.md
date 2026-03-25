@@ -70,6 +70,8 @@ Future agents should treat the canonical template repo this way:
 - start from canonical `develop`
 - inspect open issues first
 - inspect the latest supported `template-smoke` state
+- treat `docs/policy/develop-branch-protection.json` as the checked-in
+  contract for canonical `develop` required checks
 - if no eligible issue exists, remain in monitoring mode
 - if an eligible issue exists, use that issue as the top objective
 

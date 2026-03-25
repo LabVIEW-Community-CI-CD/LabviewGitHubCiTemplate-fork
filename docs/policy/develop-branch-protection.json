@@ -1,0 +1,24 @@
+{
+  "schema": "labview-template/develop-branch-protection@v1",
+  "branch": "develop",
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "comparevi-consumer-smoke (ubuntu-latest)",
+      "comparevi-consumer-smoke (windows-latest)",
+      "render (ubuntu-latest, hosted)",
+      "render (ubuntu-latest, docker)",
+      "render (ubuntu-latest, mixed)",
+      "render (windows-latest, hosted)",
+      "render (windows-latest, docker)",
+      "render (windows-latest, mixed)"
+    ]
+  },
+  "required_linear_history": true,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "block_creations": false,
+  "required_conversation_resolution": false,
+  "lock_branch": false,
+  "allow_fork_syncing": false
+}
