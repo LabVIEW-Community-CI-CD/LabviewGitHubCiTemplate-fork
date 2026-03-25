@@ -54,6 +54,7 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 - Docker lane policy: `.github/comparevi/docker-lane-policy.json`
 - Docker execution doc: `docs/DOCKER_PROFILE.md`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
+- receipt artifact: `docker-profile-plan`
 {% else -%}
 - Docker-profile follow-up: requested alongside the hosted surface
 - Docker capability manifest entry: `.github/comparevi/capabilities.json -> capabilities.dockerProfile`
@@ -61,6 +62,7 @@ released CompareVI.Tools bundle through the distributed capability manifest:
 - Docker lane policy: `.github/comparevi/docker-lane-policy.json`
 - Docker execution doc: `docs/DOCKER_PROFILE.md`
 - authoritative image-contract source: `consumerContract.dockerImageContract`
+- receipt artifact: `docker-profile-plan`
 {% endif %}
 - hosted Linux + hosted Windows remain the current distributed proof surface
 
@@ -70,6 +72,9 @@ are distributor surfaces only.
 Resolve the actual image contract from the pinned Producer-published
 `comparevi-tools-release.json` payload instead of inventing repository-local
 image naming rules or copying CompareVI runtime logic into this repository.
+Use the Docker workflow receipt at
+`tests/results/docker-profile/docker-profile-plan.json` to prove which pinned
+contract surface the consumer scaffold read.
 {% endif %}
 
 ## Branch Roles

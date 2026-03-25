@@ -210,6 +210,15 @@ jobs:
               if ($dockerCapability.authoritativeConsumerPin -ne $compareViPin) {
                 throw 'Docker render should keep the CompareVI.Tools pin on the dockerProfile capability.'
               }
+              if ($dockerCapability.releaseAssetName -ne "CompareVI.Tools-$compareViPin.zip") {
+                throw 'Docker render should record the released CompareVI.Tools asset name on the dockerProfile capability.'
+              }
+              if ($dockerCapability.releaseMetadataPath -ne 'comparevi-tools-release.json') {
+                throw 'Docker render should record the CompareVI.Tools release metadata path on the dockerProfile capability.'
+              }
+              if ($dockerCapability.bundleImportPath -ne 'tools/CompareVI.Tools/CompareVI.Tools.psd1') {
+                throw 'Docker render should record the bundle import path on the dockerProfile capability.'
+              }
               if ($dockerCapability.requestedExecutionProfile -ne 'docker') {
                 throw 'Docker render should record docker as the requested execution profile.'
               }
@@ -220,8 +229,18 @@ jobs:
                 throw 'Docker render should document the authoritative image contract source.'
               }
               $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
-              if (-not $dockerDoc.Contains('workflow scaffold: `.github/workflows/docker-profile.yml`')) {
-                throw 'Docker render should document the generated Docker workflow scaffold.'
+              foreach ($snippet in @(
+                'workflow scaffold: `.github/workflows/docker-profile.yml`',
+                'releaseAssetName',
+                'releaseMetadataPath',
+                'bundleImportPath',
+                'receipt path: `tests/results/docker-profile/docker-profile-plan.json`',
+                'receipt schema: `labview-template/docker-profile-plan@v1`',
+                'uploaded artifact name: `docker-profile-plan`'
+              )) {
+                if (-not $dockerDoc.Contains($snippet)) {
+                  throw "Docker render should document Docker manifest or receipt contract detail: $snippet"
+                }
               }
               $dockerPolicy = Get-Content -LiteralPath $dockerPolicyPath -Raw | ConvertFrom-Json -AsHashtable
               if ($dockerPolicy.requestedExecutionProfile -ne 'docker') {
@@ -237,6 +256,15 @@ jobs:
               foreach ($snippet in $dockerWorkflowRequiredSnippets) {
                 if (-not $dockerWorkflow.Contains($snippet)) {
                   throw "Docker workflow scaffold is missing required snippet: $snippet"
+                }
+              }
+              foreach ($snippet in @(
+                "schema = 'labview-template/docker-profile-plan@v1'",
+                '$receiptPath = Join-Path $receiptRoot ''docker-profile-plan.json''',
+                "name: docker-profile-plan"
+              )) {
+                if (-not $dockerWorkflow.Contains($snippet)) {
+                  throw "Docker workflow scaffold is missing receipt contract snippet: $snippet"
                 }
               }
               foreach ($relativePath in $dockerForbiddenPaths) {
@@ -261,6 +289,15 @@ jobs:
               if ($dockerCapability.authoritativeImageContractSource -ne 'consumerContract.dockerImageContract') {
                 throw 'Mixed render should record the authoritative image contract source.'
               }
+              if ($dockerCapability.releaseAssetName -ne "CompareVI.Tools-$compareViPin.zip") {
+                throw 'Mixed render should record the released CompareVI.Tools asset name on the dockerProfile capability.'
+              }
+              if ($dockerCapability.releaseMetadataPath -ne 'comparevi-tools-release.json') {
+                throw 'Mixed render should record the CompareVI.Tools release metadata path on the dockerProfile capability.'
+              }
+              if ($dockerCapability.bundleImportPath -ne 'tools/CompareVI.Tools/CompareVI.Tools.psd1') {
+                throw 'Mixed render should record the bundle import path on the dockerProfile capability.'
+              }
               if ($dockerCapability.requestedExecutionProfile -ne 'mixed') {
                 throw 'Mixed render should record mixed as the requested execution profile.'
               }
@@ -271,8 +308,18 @@ jobs:
                 throw 'Mixed render should document the authoritative image contract source.'
               }
               $dockerDoc = Get-Content -LiteralPath $dockerDocPath -Raw
-              if (-not $dockerDoc.Contains('hosted surface retained: `true`')) {
-                throw 'Mixed render should document hosted surface retention.'
+              foreach ($snippet in @(
+                'hosted surface retained: `true`',
+                'releaseAssetName',
+                'releaseMetadataPath',
+                'bundleImportPath',
+                'receipt path: `tests/results/docker-profile/docker-profile-plan.json`',
+                'receipt schema: `labview-template/docker-profile-plan@v1`',
+                'uploaded artifact name: `docker-profile-plan`'
+              )) {
+                if (-not $dockerDoc.Contains($snippet)) {
+                  throw "Mixed render should document Docker manifest or receipt contract detail: $snippet"
+                }
               }
               $dockerPolicy = Get-Content -LiteralPath $dockerPolicyPath -Raw | ConvertFrom-Json -AsHashtable
               if ($dockerPolicy.requestedExecutionProfile -ne 'mixed') {
@@ -288,6 +335,15 @@ jobs:
               foreach ($snippet in $dockerWorkflowRequiredSnippets) {
                 if (-not $dockerWorkflow.Contains($snippet)) {
                   throw "Mixed Docker workflow scaffold is missing required snippet: $snippet"
+                }
+              }
+              foreach ($snippet in @(
+                "schema = 'labview-template/docker-profile-plan@v1'",
+                '$receiptPath = Join-Path $receiptRoot ''docker-profile-plan.json''',
+                "name: docker-profile-plan"
+              )) {
+                if (-not $dockerWorkflow.Contains($snippet)) {
+                  throw "Mixed Docker workflow scaffold is missing receipt contract snippet: $snippet"
                 }
               }
               foreach ($relativePath in $dockerForbiddenPaths) {
