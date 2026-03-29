@@ -101,6 +101,6 @@ capability contract in `.github/comparevi/capabilities.json`.
 - canonical receipt schema source: `LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate/docs/schemas/labview-template-docker-profile-plan-v1.schema.json`
 
 Use a `comparevi_tools_consumer_pin` that publishes the Docker-profile
-capability contract, such as `v0.6.4` or a later supported stable `v0.6.x`
+capability contract, such as `v0.6.6` or a later supported stable `v0.6.x`
 release.
 {% endif %}

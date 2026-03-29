@@ -10,7 +10,7 @@
     "docker",
     "mixed"
   ],
-  "comparevi_tools_consumer_pin": "v0.6.4",
+  "comparevi_tools_consumer_pin": "v0.6.6",
   "enable_vi_history_capability": [
     "yes",
     "no"

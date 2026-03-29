@@ -5,7 +5,7 @@ param(
   [string]$ExecutionProfile,
 
   [Parameter()]
-  [string]$CompareViPin = 'v0.6.4'
+  [string]$CompareViPin = 'v0.6.6'
 )
 
 Set-StrictMode -Version Latest
