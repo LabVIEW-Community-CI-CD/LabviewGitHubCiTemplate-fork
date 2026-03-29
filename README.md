@@ -44,7 +44,7 @@ cookiecutter https://github.com/LabVIEW-Community-CI-CD/LabviewGitHubCiTemplate.
   repo_slug="labview-hosted-ci-sample"
   github_owner="LabVIEW-Community-CI-CD"
   execution_profile="hosted"
-  comparevi_tools_consumer_pin="v0.6.3"
+  comparevi_tools_consumer_pin="v0.6.4"
   enable_vi_history_capability="yes"
 ```
 
