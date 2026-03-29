@@ -1,0 +1,47 @@
+name: Promotion Contract
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  promotion-contract:
+    name: promotion-contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate comparevi stable pin contract
+        shell: bash
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+
+          function read(filePath) {
+            return fs.readFileSync(filePath, 'utf8');
+          }
+
+          function ensureIncludes(filePath, expected) {
+            const content = read(filePath);
+            if (!content.includes(expected)) {
+              throw new Error(`Expected ${filePath} to include: ${expected}`);
+            }
+          }
+
+          const cookiecutter = JSON.parse(read('cookiecutter.json'));
+          const pin = cookiecutter.comparevi_tools_consumer_pin;
+          if (!/^v\d+\.\d+\.\d+$/.test(pin)) {
+            throw new Error(`Expected stable comparevi pin, found ${pin}`);
+          }
+
+          ensureIncludes('.github/workflows/template-smoke.yml', `-CompareViPin '${pin}'`);
+          ensureIncludes('.github/workflows/template-smoke.yml', `uses: LabVIEW-Community-CI-CD/compare-vi-cli-action@${pin}`);
+          ensureIncludes('.github/workflows/template-smoke.yml', `pinned_ref: \`LabVIEW-Community-CI-CD/compare-vi-cli-action@${pin}\``);
+          ensureIncludes('tests/Test-TemplateSmokeRender.ps1', `[string]$CompareViPin = '${pin}'`);
+          ensureIncludes('README.md', `comparevi_tools_consumer_pin="${pin}"`);
+          ensureIncludes('docs/VI_HISTORY_CAPABILITY_DISTRIBUTION.md', `The default upstream consumer pin is \`${pin}\`.`);
+          ensureIncludes('{{ cookiecutter.repo_slug }}/README.md', `capability contract, such as \`${pin}\` or a later supported stable \`v0.6.x\``);
+          EOF

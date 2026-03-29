@@ -35,8 +35,10 @@ standing-priority work.
   - `template-smoke` on `push`, `pull_request`, and `workflow_dispatch` is the
     authoritative template-self-validation surface
   - canonical `develop` branch protection now requires the full
-    `template-smoke` matrix recorded in
+    `template-smoke` matrix plus the canonical governance checks recorded in
     `docs/policy/develop-branch-protection.json`
+  - canonical promotions should route through the checked-in `production`
+    environment so human-gated release acknowledgement is explicit
 - generated execution-profile contract
   - `hosted` is the default generated profile
   - `docker` and `mixed` are accepted template inputs

@@ -11,7 +11,9 @@
       "render (ubuntu-latest, mixed)",
       "render (windows-latest, hosted)",
       "render (windows-latest, docker)",
-      "render (windows-latest, mixed)"
+      "render (windows-latest, mixed)",
+      "Policy Guard (Upstream) / policy-guard",
+      "Promotion Contract / promotion-contract"
     ]
   },
   "required_linear_history": true,

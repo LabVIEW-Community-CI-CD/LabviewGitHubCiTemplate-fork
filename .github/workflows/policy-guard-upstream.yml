@@ -1,0 +1,67 @@
+name: Policy Guard (Upstream)
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  policy-guard:
+    name: policy-guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate develop branch protection contract
+        shell: bash
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+
+          const contractPath = 'docs/policy/develop-branch-protection.json';
+          const contract = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+          const expectedContexts = [
+            'comparevi-consumer-smoke (ubuntu-latest)',
+            'comparevi-consumer-smoke (windows-latest)',
+            'render (ubuntu-latest, hosted)',
+            'render (ubuntu-latest, docker)',
+            'render (ubuntu-latest, mixed)',
+            'render (windows-latest, hosted)',
+            'render (windows-latest, docker)',
+            'render (windows-latest, mixed)',
+            'Policy Guard (Upstream) / policy-guard',
+            'Promotion Contract / promotion-contract'
+          ];
+
+          function fail(message) {
+            console.error(message);
+            process.exit(1);
+          }
+
+          if (contract.branch !== 'develop') {
+            fail(`Expected branch contract for develop, found ${contract.branch}`);
+          }
+          if (contract.required_status_checks?.strict !== true) {
+            fail('Expected strict required status checks for develop.');
+          }
+
+          const configured = [...(contract.required_status_checks?.contexts || [])].sort();
+          const expected = [...expectedContexts].sort();
+          if (JSON.stringify(configured) !== JSON.stringify(expected)) {
+            fail(
+              `Develop branch protection contexts drifted.\nExpected: ${expected.join(', ')}\nActual: ${configured.join(', ')}`
+            );
+          }
+
+          for (const workflowPath of [
+            '.github/workflows/template-smoke.yml',
+            '.github/workflows/policy-guard-upstream.yml',
+            '.github/workflows/promotion-contract.yml'
+          ]) {
+            if (!fs.existsSync(workflowPath)) {
+              fail(`Missing workflow required by develop protection contract: ${workflowPath}`);
+            }
+          }
+          EOF
