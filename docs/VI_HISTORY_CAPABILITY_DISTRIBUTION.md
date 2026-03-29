@@ -36,7 +36,7 @@ records the Producer-published Docker capability contract pointer:
 
 ## Current Pin
 
-The default upstream consumer pin is `v0.6.4-rc.2`.
+The default upstream consumer pin is `v0.6.3`.
 
 That pin is intentionally stored in the template prompt surface so future
 template revisions can advance the pin without forcing downstream repos to copy
